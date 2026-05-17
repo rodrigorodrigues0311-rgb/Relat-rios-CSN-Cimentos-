@@ -9,6 +9,7 @@
 <meta name="theme-color" content="#6B21A8">
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <title>Relatorios Manutencao - CSN</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -606,12 +607,12 @@ body.dark .stat-lbl{color:#94a3b8;}
 </div>
 
 <div id="app">
-  <!-- INSTALL BANNER -->
+  <!-- INSTALL BANNER PWA -->
   <div id="ic">
-    <div style="font-size:1.6rem;flex-shrink:0">📲</div>
+    <div style="font-size:1.5rem;flex-shrink:0">&#128640;</div>
     <div class="ic-text">
-      <strong>Instalar App CSN Cimentos</strong>
-      <span>Acesso rápido direto na tela inicial</span>
+      <strong>Instalar App CSN</strong>
+      <span>Adicione na tela inicial do celular</span>
     </div>
     <button class="ic-btn" id="binst">Instalar</button>
     <button class="ic-skip" id="bskip">&#10005;</button>
@@ -1183,97 +1184,88 @@ var SK={rphoto:'rp1',rname:'rn1',rcargo:'rc1',history:'hist1',draft:'draft1',
         prof:{nome:'p-nome',mat:'p-mat',func:'p-func',idade:'p-idade',photo:'p-photo'}};
 
 // PWA
-var PE=null,SOK=false;
+var PE=null, SOK=false;
 
-// Registra Service Worker
-if('serviceWorker'in navigator){
-  navigator.serviceWorker.register('./sw.js')
-    .then(function(reg){console.log('SW registrado:',reg.scope);})
-    .catch(function(err){console.warn('SW erro:',err);});
+// Service Worker
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').catch(function(){});
 }
 
-// Captura o evento de instalacao ANTES de qualquer outra coisa
-window.addEventListener('beforeinstallprompt',function(e){
-  e.preventDefault(); // impede o mini-infobar automatico
-  PE=e;              // guarda o evento para usar depois
-  console.log('beforeinstallprompt capturado');
-  if(SOK)_showIC(); // se o app ja carregou, mostra o banner
+// Captura o prompt de instalacao (Android Chrome)
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  PE = e;
+  // Mostra o banner assim que o prompt estiver disponivel
+  if(SOK){ _showIC(); }
 });
 
-// Quando o app for instalado
-window.addEventListener('appinstalled',function(){
-  console.log('App instalado!');
+// App instalado com sucesso
+window.addEventListener('appinstalled', function(){
   _hideIC();
-  PE=null;
-  try{localStorage.setItem('ps_installed','1');}catch(e){}
+  PE = null;
+  try{ localStorage.setItem('pwa_installed','1'); }catch(e){}
   toast('App instalado com sucesso!');
 });
 
 function _showIC(){
-  // Nao mostra se ja esta rodando como standalone (ja instalado)
-  if(window.matchMedia('(display-mode:standalone)').matches)return;
-  if(navigator.standalone===true)return; // iOS standalone
-  // So mostra se tem o prompt do Android disponivel OU se e iOS Safari
-  var isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
-  var isInStandaloneMode=('standalone'in navigator)&&navigator.standalone;
-  if(PE||isIOS){
-    document.getElementById('ic').classList.add('show');
-  }
+  // Nao mostra se ja esta em modo standalone (app ja instalado)
+  if(window.matchMedia('(display-mode:standalone)').matches) return;
+  if(navigator.standalone === true) return;
+  // Nao mostra se usuario fechou o banner hoje
+  try{
+    var sk = localStorage.getItem('pwa_skip');
+    if(sk && (Date.now() - Number(sk)) < 86400000) return;
+  }catch(e){}
+  // Mostra o banner
+  var ic = document.getElementById('ic');
+  if(ic) ic.classList.add('show');
 }
 
 function _hideIC(){
-  document.getElementById('ic').classList.remove('show');
+  var ic = document.getElementById('ic');
+  if(ic) ic.classList.remove('show');
 }
 
-// Botao FECHAR o banner
-var _bskip=document.getElementById('bskip');
-if(_bskip)_bskip.addEventListener('click',function(){
-  _hideIC();
-  try{localStorage.setItem('ps',Date.now());}catch(e){}
-});
+// Botao fechar
+document.addEventListener('DOMContentLoaded', function(){
+  var bskip = document.getElementById('bskip');
+  if(bskip) bskip.addEventListener('click', function(){
+    _hideIC();
+    try{ localStorage.setItem('pwa_skip', Date.now()); }catch(e){}
+  });
 
-// Botao INSTALAR
-var _binst=document.getElementById('binst');
-if(_binst)_binst.addEventListener('click',function(){
-  if(PE){
-    // Android Chrome - dispara o prompt nativo de instalacao
-    PE.prompt();
-    PE.userChoice.then(function(choiceResult){
-      if(choiceResult.outcome==='accepted'){
-        console.log('Usuario aceitou instalar');
-        _hideIC();
-      } else {
-        console.log('Usuario recusou instalar');
-      }
-      PE=null;
-    });
-  } else {
-    // iOS Safari - instrucoes manuais
-    var isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
-    if(isIOS){
-      _showIOSInstall();
+  // Botao instalar
+  var binst = document.getElementById('binst');
+  if(binst) binst.addEventListener('click', function(){
+    if(PE){
+      PE.prompt();
+      PE.userChoice.then(function(r){
+        if(r.outcome === 'accepted'){ _hideIC(); }
+        PE = null;
+      });
     } else {
-      toast('Use o Chrome para instalar como app');
+      // iOS: mostra instrucoes
+      _showIOSInstall();
     }
-  }
+  });
 });
 
 function _showIOSInstall(){
-  var ov=document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.6);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:16px';
-  var box=document.createElement('div');
-  box.style.cssText='background:#fff;border-radius:20px;width:100%;padding:24px 20px;text-align:center';
-  box.innerHTML='<div style="font-size:1.5rem;margin-bottom:10px">&#128241;</div>'
-    +'<div style="font-size:1rem;font-weight:800;color:#4C1D95;margin-bottom:8px">Instalar no iPhone/iPad</div>'
-    +'<div style="font-size:.88rem;color:#64748B;line-height:1.6;margin-bottom:16px">'
-    +'1. Toque em <strong>Compartilhar</strong> &#11014;&#65039;<br>'
-    +'2. Role e toque em <strong>Adicionar a Tela de Inicio</strong> &#128242;<br>'
-    +'3. Toque em <strong>Adicionar</strong>'
-    +'</div>';
-  var btn=document.createElement('button');
-  btn.textContent='Entendido';
-  btn.style.cssText='width:100%;padding:13px;background:linear-gradient(135deg,#4C1D95,#7C3AED);border:none;border-radius:12px;color:#fff;font-size:.95rem;font-weight:700;cursor:pointer';
-  btn.onclick=function(){document.body.removeChild(ov);};
+  var ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.65);display:flex;align-items:flex-end;padding:16px';
+  var box = document.createElement('div');
+  box.style.cssText = 'background:#fff;border-radius:20px;width:100%;padding:24px 20px;text-align:center';
+  box.innerHTML = '<div style="font-size:2rem;margin-bottom:8px">&#128241;</div>'
+    + '<div style="font-size:1rem;font-weight:800;color:#4C1D95;margin-bottom:10px">Instalar no iPhone / iPad</div>'
+    + '<div style="font-size:.88rem;color:#64748B;line-height:1.8;margin-bottom:18px">'
+    + '1&#46; Toque em <strong>Compartilhar</strong> &#11014;&#65039;<br>'
+    + '2&#46; Toque em <strong>Adicionar a Tela de Inicio</strong> &#128242;<br>'
+    + '3&#46; Confirme em <strong>Adicionar</strong>'
+    + '</div>';
+  var btn = document.createElement('button');
+  btn.textContent = 'Entendido';
+  btn.style.cssText = 'width:100%;padding:14px;background:linear-gradient(135deg,#4C1D95,#7C3AED);border:none;border-radius:12px;color:#fff;font-size:.95rem;font-weight:700;cursor:pointer';
+  btn.onclick = function(){ document.body.removeChild(ov); };
   box.appendChild(btn);
   ov.appendChild(box);
   document.body.appendChild(ov);
@@ -1289,18 +1281,9 @@ document.addEventListener('DOMContentLoaded',function(){
     setTimeout(function(){if(sp)sp.style.display='none';},600);
     SOK=true;
     try{init();}catch(e){console.error('init:',e);}
-    // Mostra banner de instalacao (apenas se nao estiver em modo standalone)
-    SOK=true;
-    setTimeout(function(){
-      try{
-        var installed=localStorage.getItem('ps_installed');
-        var skipped=localStorage.getItem('ps');
-        var recentlySkipped=skipped&&(Date.now()-Number(skipped)<86400000);
-        if(!installed&&!recentlySkipped){
-          _showIC();
-        }
-      }catch(e){}
-    },1500); // aguarda 1.5s apos o app carregar para mostrar o banner
+    SOK = true;
+    // Tenta mostrar banner de instalacao apos app carregar
+    setTimeout(function(){ try{ _showIC(); }catch(e){} }, 2000);
   },2000);
 });
 
