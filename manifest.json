@@ -1,13 +1,13 @@
 {
-  "name": "Relat\u00f3rio Automa\u00e7\u00e3o",
-  "short_name": "Rel. Automa\u00e7\u00e3o",
-  "description": "Relat\u00f3rios T\u00e9cnicos \u2013 Equipe de Automa\u00e7\u00e3o CSN Minera\u00e7\u00e3o",
+  "name": "Relatório Automação - CSN Cimentos",
+  "short_name": "CSN Automação",
+  "description": "Relatórios Técnicos – Equipe de Automação CSN Cimentos",
   "start_url": "/Relat-rios-T-cnico/",
   "scope": "/Relat-rios-T-cnico/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#020914",
-  "theme_color": "#00c8ff",
+  "background_color": "#3B0764",
+  "theme_color": "#7C3AED",
   "lang": "pt-BR",
   "icons": [
     {
