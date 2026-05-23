@@ -1095,7 +1095,7 @@ body.dark .stat-lbl{color:#94a3b8;}
     <div class="modal-sh">
       <div class="modal-hd"></div>
       <div class="modal-title">Sair do Relatorio?</div>
-      <p style="font-size:.88rem;color:var(--g500);margin-bottom:20px">O relatorio sera salvo como rascunho e voce podera continuar depois.</p>
+      <p style="font-size:.88rem;color:var(--g500);margin-bottom:20px">Deseja salvar um rascunho para continuar depois, ou descartar o relatorio?</p>
       <button class="btn-full" onclick="saveDraftAndExit()">Salvar Rascunho e Sair</button>
       <button class="btn-full" onclick="discardAndExit()" style="background:var(--red2);margin-top:8px">Descartar e Sair</button>
       <button style="width:100%;padding:13px;background:transparent;border:none;font-size:.88rem;color:var(--g500);cursor:pointer;margin-top:6px;font-family:var(--font)" onclick="document.getElementById('back-ov').classList.remove('show')">Continuar Editando</button>
@@ -1409,7 +1409,7 @@ function goStep(n){
 }
 
 function startReport(){
-  S.acts=[];S.photos=[];S.abss=[];S.tipo='';S.typeKey='';
+  S.acts=[];S.photos=[];S.abss=[];S.tipo='';S.typeKey='';S.hasDraft=false;updateDraftBadge();
   ['act-list','ph-grid','abs-list','dev-list','pend-list'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='';});
   var pc=document.getElementById('ph-cnt');if(pc)pc.style.display='none';
   document.querySelectorAll('.type-c').forEach(function(c){c.className='type-c';});
@@ -1709,8 +1709,16 @@ function saveDraftAndExit(){
 }
 
 function discardAndExit(){
+  // Limpa localStorage
   try{localStorage.removeItem(SK.draft);}catch(e){}
-  S.hasDraft=false;S.inReport=false;updateDraftBadge();
+  // Limpa Firebase
+  try{if(typeof fbClearDraft==='function')fbClearDraft();}catch(e){}
+  // Reseta estado
+  S.hasDraft=false;
+  S.inReport=false;
+  S.acts=[];S.photos=[];S.abss=[];S.tipo='';S.typeKey='';S.step=1;
+  // Esconde badge
+  updateDraftBadge();
   document.getElementById('back-ov').classList.remove('show');
   navTo('scr-dash');
 }
@@ -1797,7 +1805,7 @@ function renderHistory(){
     var metaH=r.date+(r.hora?' \u00b7 '+r.hora:'')+'<span>&#183;</span>'+r.tipo;
     d.innerHTML='<div class="rpt-dot" style="background:'+(i<2?'#7C3AED':'#43A047')+'"></div>'
       +'<div class="rpt-info"><div class="rpt-meta">'+metaH+'</div>'
-      +'<div class="rpt-title">'+(r.acts&&r.acts.length?sa(r.acts[0].desc).substring(0,45):'Relatorio '+r.proto)+'</div></div>'
+      +'<div class="rpt-title">'+r.proto+'</div></div>'
       +'<span class="badge">Enviado</span>';
     d.onclick=function(){showReportDetail(i);};el.appendChild(d);
   });
@@ -1812,7 +1820,7 @@ function renderDashRecent(){
     var metaStr=r.date+(r.hora?' '+r.hora:'')+'<span>&#183;</span>'+r.tipo;
     d.innerHTML='<div class="rpt-dot" style="background:'+(i===0?'#7C3AED':'#43A047')+'"></div>'
       +'<div class="rpt-info"><div class="rpt-meta">'+metaStr+'</div>'
-      +'<div class="rpt-title">'+(r.acts&&r.acts.length?sa(r.acts[0].desc).substring(0,40):'Relatorio '+r.proto)+'</div></div>'
+      +'<div class="rpt-title">'+r.proto+'</div></div>'
       +'<span class="badge">Enviado</span>';
     d.onclick=function(){showReportDetail(i);};el.appendChild(d);
   });
