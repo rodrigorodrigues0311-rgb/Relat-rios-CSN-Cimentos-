@@ -2707,20 +2707,20 @@ async function generatePDFFromReport(r,photos){
 
   // ===== AUSENCIAS =====
   var nAus=r.abss&&r.abss.length?r.abss.length:0;
-  var ausH=nAus>0?14+nAus*14:22;
+  var ausH=nAus>0?12+nAus*10:16;
   rrfs(ML,y,CW,ausH,3,white,border);
   rr(ML,y,13,ausH,3,navy);
   // Icone pessoas branco
   doc.setFillColor(white[0],white[1],white[2]);
   var ic_ay=y+ausH/2;
-  doc.circle(ML+5,ic_ay-2,2.2,'F');doc.circle(ML+8.5,ic_ay-2,1.8,'F');
-  doc.ellipse(ML+5,ic_ay+2,3,1.7,'F');doc.ellipse(ML+8.5,ic_ay+2,2.5,1.7,'F');
+  doc.circle(ML+5,ic_ay-1.5,2,'F');doc.circle(ML+8.5,ic_ay-1.5,1.6,'F');
+  doc.ellipse(ML+5,ic_ay+2,2.5,1.4,'F');doc.ellipse(ML+8.5,ic_ay+2,2.2,1.4,'F');
 
-  tx('AUSENCIAS DO DIA',ML+16,y+7,10,navy,true);
+  tx('AUSENCIAS DO DIA',ML+16,y+6,9,navy,true);
   if(!nAus){
-    tx('Nenhuma ausencia no dia.',ML+16,y+14,8,sub,false);
+    tx('Nenhuma ausencia no dia.',ML+16,y+12,7,sub,false);
   }else{
-    var ayy=y+13;
+    var ayy=y+11;
     r.abss.forEach(function(a,i){
       var aph=cPh[a.name];
       if(aph){try{doc.addImage(aph,'JPEG',ML+16,ayy-4.5,7,7);}catch(e){}}
@@ -2732,7 +2732,7 @@ async function generatePDFFromReport(r,photos){
 
   // ===== ATIVIDADES REALIZADAS (resumo) =====
   var nActs=r.acts&&r.acts.length?r.acts.length:0;
-  var actListH=22+(nActs>0?nActs*11:0);
+  var actListH=16+(nActs>0?nActs*8:0);
   rrfs(ML,y,CW,actListH,3,white,border);
   rr(ML,y,13,actListH,3,navy);
   doc.setFillColor(white[0],white[1],white[2]);
