@@ -495,6 +495,27 @@ body.dark .ph-card{background:#1a1a2e !important;border-color:#2d3748 !important
 body.dark .pend-item{background:#1a1a2e !important;border-color:#2d3748 !important;color:#f1f5f9 !important;}
 /* Indicadores section */
 body.dark .ind-head{background:linear-gradient(160deg,#3B0764,#4C1D95) !important;}
+body.dark .stat-c{background:#1a1a2e !important;border-color:#2d3748 !important;}
+body.dark .stat-n{color:#c084fc !important;}
+body.dark .stat-l{color:#94a3b8 !important;}
+body.dark .chart-card{background:#1a1a2e !important;border-color:#2d3748 !important;}
+body.dark .chart-title{color:#f1f5f9 !important;}
+body.dark .chart-sub{color:#94a3b8 !important;}
+body.dark .leg{color:#94a3b8 !important;}
+body.dark #scr-indicators .scroll{background:#0f0f1a !important;}
+/* Indicadores — stat cards */
+body.dark .stat-c{background:#1a1a2e !important;border-color:#2d3748 !important;}
+body.dark .stat-n{color:#c084fc !important;}
+body.dark .stat-l{color:#94a3b8 !important;}
+/* Indicadores — gráfico */
+body.dark .chart-card{background:#1a1a2e !important;border-color:#2d3748 !important;}
+body.dark .chart-title{color:#f1f5f9 !important;}
+body.dark .chart-sub{color:#94a3b8 !important;}
+body.dark .legend-row{color:#94a3b8 !important;}
+body.dark .leg{color:#94a3b8 !important;}
+/* Indicadores — scroll area */
+body.dark #scr-indicators .scroll{background:#0f0f1a !important;}
+body.dark #scr-indicators .padded{background:#0f0f1a !important;}
 body.dark .chart-wrap{background:#1a1a2e !important;border-color:#2d3748 !important;}
 /* Modais internos */
 body.dark .wmod-body{background:#1a1a2e !important;}
@@ -550,7 +571,7 @@ body.dark [style*="color:var(--g500)"]{color:#94a3b8 !important;}
 
 .dash-head{touch-action:pan-down;user-select:none;}
 
-/* NEON LOGO WRAPPER */
+/* NEON LOGO WRAPPER — fio percorrendo o contorno */
 .spl-logo-wrap {
   position: relative;
   width: 190px;
@@ -561,54 +582,43 @@ body.dark [style*="color:var(--g500)"]{color:#94a3b8 !important;}
   flex-shrink: 0;
 }
 
-/* Anel neon girando - usa border ao inves de ::before sobre a imagem */
+/* SVG neon — fica sobre a imagem, pointer-events none */
 .spl-neon-ring {
   position: absolute;
-  inset: -8px;
-  border-radius: 24px;
-  background: conic-gradient(
-    from 0deg,
-    #A855F7, #EC4899, #06B6D4,
-    #7C3AED, #C084FC, #A855F7
-  );
-  animation: neon-rotate 2.4s linear infinite;
-  z-index: 0;
-  filter: blur(1.5px);
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  pointer-events: none;
 }
 
-/* Brilho difuso externo */
+/* Halo fixo suave ao redor */
 .spl-neon-glow {
   position: absolute;
-  inset: -14px;
-  border-radius: 30px;
-  background: conic-gradient(
-    from 120deg,
-    rgba(168,85,247,0),
-    rgba(236,72,153,.55),
-    rgba(6,182,212,.45),
-    rgba(168,85,247,.65),
-    rgba(168,85,247,0)
-  );
-  animation: neon-rotate 2.4s linear infinite reverse;
+  inset: -8px;
+  border-radius: 26px;
+  box-shadow:
+    0 0 12px 2px rgba(192,132,252,.30),
+    0 0 28px 4px rgba(168,85,247,.15);
   z-index: 0;
-  filter: blur(8px);
+  animation: neon-breathe 2.5s ease-in-out infinite;
 }
 
-/* Fundo solido que cobre o neon atras da imagem */
+/* Fundo escuro isolando a imagem */
 .spl-neon-bg {
   position: absolute;
-  inset: 4px;
+  inset: 3px;
   border-radius: 18px;
   background: #3B0764;
   z-index: 1;
 }
 
-/* A imagem do saco fica acima de tudo */
+/* Imagem */
 .spl-logo-wrap .spl-logo {
   position: relative;
   z-index: 2;
-  width: 170px;
-  height: 170px;
+  width: 168px;
+  height: 168px;
   background: transparent;
   border: none;
   box-shadow: none;
@@ -617,30 +627,36 @@ body.dark [style*="color:var(--g500)"]{color:#94a3b8 !important;}
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: neon-glow-pulse 2.4s ease-in-out infinite;
 }
 
 .spl-logo-wrap .spl-logo img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  /* esconde a imagem quebrada enquanto o src esta vazio */
   opacity: 0;
-  transition: opacity 0.4s;
+  transition: opacity 0.5s ease;
+  filter: drop-shadow(0 4px 16px rgba(0,0,0,.4));
 }
 
-.spl-logo-wrap .spl-logo img.loaded {
-  opacity: 1;
+.spl-logo-wrap .spl-logo img.loaded { opacity: 1; }
+
+@keyframes neon-breathe {
+  0%, 100% { opacity: .6; }
+  50%       { opacity: 1; }
 }
 
-@keyframes neon-rotate {
-  0%   { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+/* Animação do fio neon percorrendo o contorno */
+@keyframes neon-draw {
+  0%   { stroke-dashoffset: 680; opacity: 0; }
+  5%   { opacity: 1; }
+  70%  { stroke-dashoffset: 0; opacity: 1; }
+  85%  { stroke-dashoffset: 0; opacity: .9; }
+  100% { stroke-dashoffset: 0; opacity: 1; }
 }
 
-@keyframes neon-glow-pulse {
-  0%, 100% { filter: drop-shadow(0 0 10px rgba(168,85,247,.8)) drop-shadow(0 0 25px rgba(168,85,247,.4)); }
-  50%       { filter: drop-shadow(0 0 16px rgba(236,72,153,.9)) drop-shadow(0 0 35px rgba(6,182,212,.5)); }
+@keyframes neon-loop {
+  0%   { stroke-dashoffset: 680; }
+  100% { stroke-dashoffset: 0; }
 }
 
 /* FLUXO DE PRODUÇÃO */
@@ -676,11 +692,37 @@ body.dark [style*="color:var(--g500)"]{color:#94a3b8 !important;}
 <div id="splash">
   <div class="spl-logo-wrap">
     <div class="spl-neon-glow"></div>
-    <div class="spl-neon-ring"></div>
     <div class="spl-neon-bg"></div>
     <div class="spl-logo">
       <img id="cement-img" src="" alt="CSN Cimentos">
     </div>
+    <!-- Fio neon SVG percorrendo o contorno -->
+    <svg class="spl-neon-ring" viewBox="0 0 190 190" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="neon-blur">
+          <feGaussianBlur stdDeviation="2.5" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <!-- Trilha base — contorno fixo bem suave -->
+      <rect x="4" y="4" width="182" height="182" rx="18" ry="18"
+        stroke="rgba(139,92,246,0.15)" stroke-width="1" fill="none"/>
+      <!-- Fio neon animado percorrendo o contorno -->
+      <rect x="4" y="4" width="182" height="182" rx="18" ry="18"
+        stroke="url(#neonGrad)" stroke-width="2" fill="none"
+        stroke-linecap="round"
+        stroke-dasharray="680"
+        stroke-dashoffset="680"
+        filter="url(#neon-blur)"
+        style="animation: neon-draw 2.4s cubic-bezier(.4,0,.2,1) forwards, neon-loop 2.4s cubic-bezier(.4,0,.2,1) 2.4s infinite;"/>
+      <defs>
+        <linearGradient id="neonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%"   stop-color="#C084FC"/>
+          <stop offset="50%"  stop-color="#E879F9"/>
+          <stop offset="100%" stop-color="#818CF8"/>
+        </linearGradient>
+      </defs>
+    </svg>
   </div>
   <div class="spl-title">Relatorios de<br>Manutencao</div>
   <div class="spl-sub" style="font-size:.95rem;color:rgba(255,255,255,.8);font-weight:600;letter-spacing:1px">CSN CIMENTOS</div>
