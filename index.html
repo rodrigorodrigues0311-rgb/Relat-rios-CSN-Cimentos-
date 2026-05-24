@@ -892,8 +892,8 @@ body.dark [style*="color:var(--g500)"]{color:#94a3b8 !important;}
         <input type="date" class="fi" id="f-data">
       </div>
       <div class="form-sec">
-        <label class="form-label">HH Disponivel</label>
-        <input type="number" class="fi" id="f-hh" placeholder="Ex: 48 horas" min="0" step="0.5">
+        <label class="form-label">Mao de Obra Disponivel</label>
+        <input type="number" class="fi" id="f-hh" placeholder="Ex: 12 colaboradores" min="0" step="1">
       </div>
       <div class="form-sec">
         <label class="form-label">Quantidade de Ordens OM do Dia</label>
@@ -1875,7 +1875,7 @@ function buildReview(){
     {ic:'&#128247;',lb:'Fotos',vl:S.photos.length+' foto(s)'},
     {ic:'&#128101;',lb:'Ausencias',vl:S.abss.length?S.abss.length+' ausencia(s)':'Nenhuma'}
   ];
-  if(hh)items.splice(2,0,{ic:'&#9203;',lb:'HH',vl:hh+' horas'});
+  if(hh)items.splice(2,0,{ic:'&#128104;&#8205;&#128295;',lb:'Mao de Obra',vl:hh+' colaboradores'});
   if(om)items.splice(3,0,{ic:'&#128203;',lb:'Ordens OM',vl:om});
   if(pr)items.push({ic:'&#128280;',lb:'Processos',vl:pr});
   var html='<div style="background:#fff;border-radius:var(--r-lg);border:1px solid var(--g200);overflow:hidden;padding:0 14px">';
@@ -1967,7 +1967,7 @@ function showReportDetail(idx){
   S.selectedReport=idx;var r=S.history[idx];if(!r)return;
   var html='<div class="hd-card"><div class="hd-card-title" style="color:var(--blue)">&#128203; Identificacao</div>';
   [['Protocolo',r.proto],['Data',r.date+(r.hora?' - '+r.hora:'')],['Tipo',r.tipo],['Responsavel',r.resp+(r.cargo?' - '+r.cargo:'')],
-   ['HH',r.hh?r.hh+' horas':''],['Ordens OM',r.om],['DDS',r.dds],['Equipamento',r.equip]
+   ['Mao de Obra',r.hh?r.hh+' colaboradores':''],['Ordens OM',r.om],['DDS',r.dds],['Equipamento',r.equip]
   ].forEach(function(kv){if(kv[1])html+='<div class="hd-row"><span class="hd-label">'+kv[0]+'</span><span class="hd-value">'+kv[1]+'</span></div>';});
   html+='</div>';
   if(r.acts&&r.acts.length){
@@ -2505,7 +2505,7 @@ function generateWPPFromReport(r){
   L.push('\u2699\ufe0f Equipe de Automa\u00e7\u00e3o - CSN Minera\u00e7\u00e3o');
   L.push('\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501');L.push('');
   L.push('\ud83d\udcc5 *Data:* '+r.date);
-  if(r.hh)L.push('\u23f1 *HH Dispon\u00edvel:* '+r.hh+' horas');
+  if(r.hh)L.push('\u23f1 *HH Dispon\u00edvel:* '+r.hh+' colaboradores');
   if(r.om)L.push('\ud83d\udccb *Ordens OM:* '+r.om);
   L.push('\ud83d\udc64 *Respons\u00e1vel:* '+r.resp+(r.cargo?' - '+r.cargo:''));
   L.push('\ud83d\udc54 *Supervisores:* Rodrigo Lima / Rafael Gomes');
@@ -2736,7 +2736,7 @@ async function generatePDFFromReport(r,photos){
   // 4 boxes info: posicoes fixas, alinhadas
   var bx=ML+cW+4, bTW=CW-cW-4, bW=(bTW-3)/2, bH=16, bG=3;
   var bRows=[[0,0,'EMPRESA','CSN Cimentos'],[bW+bG,0,'EQUIPE','Manutencao'],
-             [0,bH+bG,'HH DISPONIVEL',r.hh?sa(r.hh)+' horas':'--'],
+             [0,bH+bG,'MAO DE OBRA',r.hh?sa(r.hh)+' horas':'--'],
              [bW+bG,bH+bG,'ORDENS OM',r.om?sa(r.om)+' ordens':'--']];
   bRows.forEach(function(row){
     var bxp=bx+row[0], byp=y+row[1];
@@ -2746,7 +2746,7 @@ async function generatePDFFromReport(r,photos){
     // Mini shapes para cada icone
     if(row[2]==='EMPRESA'){doc.setFillColor(sub[0],sub[1],sub[2]);doc.roundedRect(bxp+3.5,byp+4.5,6,7,1,1,'F');doc.setFillColor(white[0],white[1],white[2]);doc.rect(bxp+5,byp+7,3,4,'F');}
     if(row[2]==='EQUIPE'){doc.setFillColor(sub[0],sub[1],sub[2]);doc.circle(bxp+6.5,byp+7.5,3,'F');doc.setFillColor(white[0],white[1],white[2]);doc.circle(bxp+6.5,byp+7.5,1.2,'F');}
-    if(row[2]==='HH DISPONIVEL'){doc.setFillColor(sub[0],sub[1],sub[2]);doc.circle(bxp+6.5,byp+7.5,3,'F');doc.setFillColor(white[0],white[1],white[2]);doc.circle(bxp+6.5,byp+7.5,1.7,'F');doc.setFillColor(sub[0],sub[1],sub[2]);doc.rect(bxp+6.3,byp+4.8,0.4,2.5,'F');}
+    if(row[2]==='MAO DE OBRA'){doc.setFillColor(sub[0],sub[1],sub[2]);doc.circle(bxp+6.5,byp+7.5,3,'F');doc.setFillColor(white[0],white[1],white[2]);doc.circle(bxp+6.5,byp+7.5,1.7,'F');doc.setFillColor(sub[0],sub[1],sub[2]);doc.rect(bxp+6.3,byp+4.8,0.4,2.5,'F');}
     if(row[2]==='ORDENS OM'){doc.setFillColor(sub[0],sub[1],sub[2]);doc.roundedRect(bxp+3.5,byp+4,6,8,1,1,'F');doc.setFillColor(white[0],white[1],white[2]);doc.rect(bxp+4.5,byp+5.5,4,0.7,'F');doc.rect(bxp+4.5,byp+7,4,0.7,'F');doc.rect(bxp+4.5,byp+8.5,3,0.7,'F');}
     // Texto label e valor \u2014 alinhados ao X fixo
     tx(row[2],bxp+14,byp+6,7.5,sub,true);
