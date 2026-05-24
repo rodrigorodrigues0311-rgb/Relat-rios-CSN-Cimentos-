@@ -2655,76 +2655,71 @@ async function generatePDFFromReport(r,photos){
   y+=cH+5;
 
   // ===== SUPERVISORES + DDS =====
-  var hw=(CW-4)/2;
-  rrfs(ML,y,hw,32,3,white,border);
-  // Icone pessoas
+  var BH=22; var GAP2=3; var hw=(CW-GAP2)/2;
+
+  // --- Caixa SUPERVISORES / LIDER ---
+  rrfs(ML,y,hw,BH,2,white,border);
   doc.setFillColor(blue[0],blue[1],blue[2]);
-  doc.circle(ML+5.5,y+8,2,'F');doc.circle(ML+8.5,y+8,1.7,'F');
-  doc.ellipse(ML+5.5,y+12,2.8,1.6,'F');doc.ellipse(ML+8.5,y+12,2.4,1.6,'F');
-  tx('SUPERVISORES / LIDER',ML+14,y+8,9.5,blue,true);
-  tx('Supervisores: Rodrigo Lima / Rafael Gomes',ML+14,y+16,9.5,text,false);
-  tx('Lider: Edson Jose',ML+14,y+24,9.5,text,false);
+  doc.circle(ML+4.5,y+7,1.7,'F');doc.circle(ML+7,y+7,1.4,'F');
+  doc.ellipse(ML+4.5,y+10.5,2.2,1.3,'F');doc.ellipse(ML+7,y+10.5,1.9,1.3,'F');
+  tx('SUPERVISORES / LIDER',ML+11,y+6,7,blue,true);
+  sf(6,text,false);
+  var supTxt=r.supervisores&&r.supervisores.length?'Sup: '+r.supervisores.join(' / '):
+             (r.supervisor?'Sup: '+sa(r.supervisor):'');
+  var liderTxt=r.lider?'Lider: '+sa(r.lider):'';
+  if(supTxt){var sl=doc.splitTextToSize(supTxt,hw-13);doc.text(sl[0],ML+11,y+12);}
+  if(liderTxt){doc.text(liderTxt,ML+11,y+17);}
 
-  if(r.dds){
-    rrfs(ML+hw+4,y,hw,32,3,white,border);
-    doc.setFillColor(blue[0],blue[1],blue[2]);
-    doc.roundedRect(ML+hw+8,y+4.5,5,7,0.8,0.8,'F');
-    doc.setFillColor(white[0],white[1],white[2]);
-    doc.rect(ML+hw+9,y+6,3,0.6,'F');doc.rect(ML+hw+9,y+7.5,3,0.6,'F');doc.rect(ML+hw+9,y+9,2,0.6,'F');
-    tx('TEMA DO DDS',ML+hw+17,y+6,6.5,blue,true);
-    sf(7.5,text,false);
-    var dl=doc.splitTextToSize(sa(r.dds),hw-20);
-    dl.slice(0,2).forEach(function(d,di){doc.text(d,ML+hw+17,y+11.5+di*5);});
-  }
-  y+=27;
-
-  // ===== TIPO DE ATIVIDADE =====
-  var tipoH=42;
-  rrfs(ML,y,CW,tipoH,3,white,border);
-  rr(ML,y,13,tipoH,3,navy);
-  // Alvo
-  sd(white,0.6);doc.circle(ML+6.5,y+tipoH/2,4,'S');doc.circle(ML+6.5,y+tipoH/2,2.2,'S');
-  doc.setFillColor(white[0],white[1],white[2]);doc.circle(ML+6.5,y+tipoH/2,1,'F');
-
-  // Textos com X e Y fixos \u2014 sem usar wt para evitar desalinhamento
-  tx('TIPO DE ATIVIDADE',ML+16,y+7,10,navy,true);
-  if(r.procs&&r.procs.length){
-    tx('PROCESSOS',ML+16,y+14,5.5,sub,true);
-    sf(7.5,text,false);
-    var pls=doc.splitTextToSize(r.procs.map(function(p){return sa(p);}).join(' | '),CW/2-18);
-    doc.text(pls[0],ML+16,y+20);
-    tx('CLASSIFICACAO',ML+CW*0.52,y+14,5.5,sub,true);
-    tx(r.tipo||'--',ML+CW*0.52,y+20,8,text,false);
-  }else{
-    tx('CLASSIFICACAO',ML+16,y+14,5.5,sub,true);
-    tx(r.tipo||'--',ML+16,y+20,8,text,false);
-    if(r.equip){
-      tx('EQUIPAMENTO',ML+CW*0.52,y+14,5.5,sub,true);
-      tx(r.equip,ML+CW*0.52,y+20,8,text,false);
-    }
-  }
-  y+=tipoH+5;
-
-  // ===== AUSENCIAS =====
-  var nAus=r.abss&&r.abss.length?r.abss.length:0;
-  var ausH=nAus>0?12+nAus*10:16;
-  rrfs(ML,y,CW,ausH,3,white,border);
-  rr(ML,y,13,ausH,3,navy);
-  // Icone pessoas branco
+  // --- Caixa TEMA DO DDS ---
+  rrfs(ML+hw+GAP2,y,hw,BH,2,white,border);
+  doc.setFillColor(blue[0],blue[1],blue[2]);
+  doc.roundedRect(ML+hw+GAP2+4,y+4,4,6,0.7,0.7,'F');
   doc.setFillColor(white[0],white[1],white[2]);
-  var ic_ay=y+ausH/2;
-  doc.circle(ML+5,ic_ay-1.5,2,'F');doc.circle(ML+8.5,ic_ay-1.5,1.6,'F');
-  doc.ellipse(ML+5,ic_ay+2,2.5,1.4,'F');doc.ellipse(ML+8.5,ic_ay+2,2.2,1.4,'F');
+  doc.rect(ML+hw+GAP2+4.8,y+5.2,2.4,0.5,'F');
+  doc.rect(ML+hw+GAP2+4.8,y+6.5,2.4,0.5,'F');
+  doc.rect(ML+hw+GAP2+4.8,y+7.8,1.8,0.5,'F');
+  tx('TEMA DO DDS',ML+hw+GAP2+11,y+6,7,blue,true);
+  sf(6.5,text,false);
+  if(r.dds){
+    var dl=doc.splitTextToSize(sa(r.dds),hw-15);
+    doc.text(dl[0]||'',ML+hw+GAP2+11,y+12);
+    if(dl[1])doc.text(dl[1],ML+hw+GAP2+11,y+17);
+  }
+  y+=BH+GAP2;
 
-  tx('AUSENCIAS DO DIA',ML+16,y+6,9,navy,true);
+  // --- Caixa TIPO DE ATIVIDADE ---
+  rrfs(ML,y,CW,BH,2,white,border);
+  rr(ML,y,10,BH,2,navy);
+  sd(white,0.6);
+  doc.circle(ML+5,y+BH/2,2.5,'S');
+  doc.circle(ML+5,y+BH/2,1.4,'S');
+  doc.setFillColor(white[0],white[1],white[2]);
+  doc.circle(ML+5,y+BH/2,0.6,'F');
+  tx('TIPO DE ATIVIDADE',ML+13,y+6,7,navy,true);
+  tx('CLASSIFICACAO',ML+13,y+12,5,sub,true);
+  tx(r.tipo||'--',ML+13,y+17,6.5,text,false);
+  tx('EQUIPAMENTO',ML+CW*0.5,y+12,5,sub,true);
+  tx(r.equip?sa(r.equip):'--',ML+CW*0.5,y+17,6.5,text,false);
+  y+=BH+GAP2;
+
+  // --- Caixa AUSENCIAS DO DIA ---
+  var nAus=r.abss&&r.abss.length?r.abss.length:0;
+  var ausH=nAus>1?BH+(nAus-1)*9:BH;
+  rrfs(ML,y,CW,ausH,2,white,border);
+  rr(ML,y,10,ausH,2,navy);
+  doc.setFillColor(white[0],white[1],white[2]);
+  var icY=y+ausH/2;
+  doc.circle(ML+4,icY-2,1.7,'F');doc.circle(ML+7,icY-2,1.4,'F');
+  doc.ellipse(ML+4,icY+1.5,2.1,1.2,'F');doc.ellipse(ML+7,icY+1.5,1.9,1.2,'F');
+  tx('AUSENCIAS DO DIA',ML+13,y+6,7,navy,true);
   if(!nAus){
-    tx('Nenhuma ausencia no dia.',ML+16,y+12,7,sub,false);
+    tx('Nenhuma ausencia no dia.',ML+13,y+14,6.5,sub,false);
   }else{
-    var ayy=y+11;
+    var ayy=y+12;
     r.abss.forEach(function(a,i){
       var aph=cPh[a.name];
-      if(aph){try{doc.addImage(aph,'JPEG',ML+16,ayy-4.5,7,7);}catch(e){}}
-      tx((i+1)+'. '+sa(a.name)+(a.reason?' - '+sa(a.reason):''),ML+(aph?25:16),ayy,9.5,text,false);
+      if(aph){try{doc.addImage(aph,'JPEG',ML+13,ayy-4,6,6);}catch(e){}}
+      tx((i+1)+'. '+sa(a.name)+(a.reason?' - '+sa(a.reason):''),ML+(aph?21:13),ayy,6.5,text,false);
       ayy+=9;
     });
   }
