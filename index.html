@@ -2827,26 +2827,33 @@ async function generatePDFFromReport(r,photos){
 
   // ===== ATIVIDADES REALIZADAS (resumo) =====
   var nActs=r.acts&&r.acts.length?r.acts.length:0;
-  var actListH=16+(nActs>0?nActs*8:0);
+  // Calcular altura real baseada no conteudo de cada linha
+  sf(8,text,false);
+  var actLines=[];
+  if(nActs===0){
+    actLines.push('Nenhuma atividade registrada.');
+  } else {
+    r.acts.forEach(function(a,ai){
+      var preview=sa(a.desc||'').substring(0,80)+(sa(a.desc||'').length>80?'...':'');
+      var wrapped=doc.splitTextToSize((ai+1)+'. '+preview, CW-20);
+      wrapped.forEach(function(l){actLines.push(l);});
+    });
+  }
+  var actListH=12+(actLines.length*7)+4;
   rrfs(ML,y,CW,actListH,3,white,border);
   rr(ML,y,13,actListH,3,navy);
   doc.setFillColor(white[0],white[1],white[2]);
-  doc.roundedRect(ML+3.5,y+5.5,6,9,1,1,'F');
+  doc.roundedRect(ML+3.5,y+4,6,9,1,1,'F');
   doc.setFillColor(navy[0],navy[1],navy[2]);
-  doc.rect(ML+4.5,y+7.5,4,0.7,'F');doc.rect(ML+4.5,y+9.5,4,0.7,'F');doc.rect(ML+4.5,y+11.5,3,0.7,'F');
-  tx('ATIVIDADES REALIZADAS',ML+16,y+9,10,navy,true);
-  if(nActs===0){
-    tx('Nenhuma atividade registrada.',ML+16,y+16,9,sub,false);
-  } else {
-    var ay2=y+16;
-    r.acts.forEach(function(a,ai){
-      var preview=sa(a.desc||'').substring(0,70)+(sa(a.desc||'').length>70?'...':'');
-      sf(8.5,text,false);
-      doc.text((ai+1)+'. '+preview, ML+16, ay2);
-      ay2+=8;
-    });
-  }
-  y+=actListH+6;
+  doc.rect(ML+4.5,y+5.5,4,0.7,'F');doc.rect(ML+4.5,y+7.5,4,0.7,'F');doc.rect(ML+4.5,y+9.5,3,0.7,'F');
+  tx('ATIVIDADES REALIZADAS',ML+16,y+8,9,navy,true);
+  sf(7.5,text,false);
+  var ay2=y+14;
+  actLines.forEach(function(l){
+    doc.text(l,ML+16,ay2);
+    ay2+=7;
+  });
+  y+=actListH+4;
 
   putFoot();
 
