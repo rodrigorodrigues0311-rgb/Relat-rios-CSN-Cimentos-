@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Solicitação de Force CLP – CSN Cimentos</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;background:#f0ebf8;min-height:100vh;}
+.header{background:linear-gradient(135deg,#2D0A5E,#6B21A8);padding:24px 20px 32px;text-align:center;}
+.header-logo{font-size:2.2rem;margin-bottom:8px;}
+.header-title{color:#fff;font-size:1.1rem;font-weight:800;}
+.header-sub{color:rgba(255,255,255,.65);font-size:.8rem;margin-top:4px;}
+.container{max-width:520px;margin:-16px auto 0;padding:0 16px 40px;position:relative;z-index:1;}
+.card{background:#fff;border-radius:18px;padding:20px;margin-bottom:14px;box-shadow:0 4px 20px rgba(76,29,149,.08);border:1px solid rgba(139,92,246,.1);}
+.card-title{font-size:.72rem;font-weight:800;color:#7C3AED;text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px;}
+.field{margin-bottom:14px;}
+.field:last-child{margin-bottom:0;}
+label{display:block;font-size:.75rem;font-weight:700;color:#6B7280;margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px;}
+input,select,textarea{width:100%;padding:12px 14px;border:1.5px solid #E5E7EB;border-radius:10px;font-size:.9rem;color:#111827;background:#fff;outline:none;transition:border-color .2s;font-family:inherit;}
+input:focus,select:focus,textarea:focus{border-color:#7C3AED;box-shadow:0 0 0 3px rgba(124,58,237,.1);}
+textarea{resize:none;min-height:90px;line-height:1.5;}
+.mono{font-family:monospace;text-transform:uppercase;font-size:.95rem;letter-spacing:.5px;}
+.warn{background:#FFF8E1;border:1px solid #F59E0B;border-radius:10px;padding:10px 14px;font-size:.8rem;color:#92400E;display:flex;gap:8px;margin-bottom:14px;line-height:1.5;}
+.req{color:#EF4444;}
+.btn{width:100%;padding:16px;background:linear-gradient(135deg,#4C1D95,#7C3AED);border:none;border-radius:14px;color:#fff;font-size:1rem;font-weight:800;cursor:pointer;margin-top:4px;}
+.btn:hover{opacity:.9;}
+/* Success */
+#success{display:none;text-align:center;padding:32px 20px;}
+.succ-icon{font-size:3.5rem;margin-bottom:14px;}
+.succ-title{font-size:1.2rem;font-weight:800;color:#1F2937;margin-bottom:8px;}
+.succ-sub{font-size:.85rem;color:#6B7280;line-height:1.6;margin-bottom:20px;}
+.proto-box{background:#F3E8FF;border-radius:10px;padding:12px;font-family:monospace;font-size:.9rem;color:#6B21A8;font-weight:700;margin-bottom:20px;}
+.btn-wpp{display:inline-flex;align-items:center;gap:10px;padding:14px 28px;background:#25D366;border:none;border-radius:14px;color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;text-decoration:none;margin-bottom:10px;}
+.btn-wpp:hover{opacity:.9;}
+.btn-back{display:inline-block;padding:12px 24px;background:#F3E8FF;border:none;border-radius:12px;color:#7C3AED;font-size:.88rem;font-weight:700;cursor:pointer;margin-top:8px;}
+/* Spinner */
+#loading{display:none;text-align:center;padding:30px;}
+.spin{width:30px;height:30px;border:3px solid #E5E7EB;border-top-color:#7C3AED;border-radius:50%;animation:sp .7s linear infinite;margin:0 auto 10px;}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">🧲</div>
+  <div class="header-title">Solicitação de Force – CLP</div>
+  <div class="header-sub">CSN Cimentos · Equipe de Manutenção</div>
+</div>
+
+<div class="container">
+
+  <div class="warn">
+    ⚠️ <span>Force em variável de CLP em produção. A solicitação será enviada ao aprovador via WhatsApp. <strong>Aguarde a aprovação antes de executar.</strong></span>
+  </div>
+
+  <div id="form-area">
+    <div class="card">
+      <div class="card-title">👤 Identificação</div>
+      <div class="field">
+        <label>Nome Completo <span class="req">*</span></label>
+        <input type="text" id="f-nome" placeholder="Ex: Rodrigo Lima">
+      </div>
+      <div class="field">
+        <label>Matrícula <span class="req">*</span></label>
+        <input type="text" id="f-mat" placeholder="Ex: 12345">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🧠 Dados do Force</div>
+      <div class="field">
+        <label>Condição / Tag a ser Forçada <span class="req">*</span></label>
+        <input type="text" id="f-tag" class="mono" placeholder="Ex: MTR_R4_RUN" oninput="this.value=this.value.toUpperCase()">
+      </div>
+
+      <div class="field">
+        <label>Equipamento <span class="req">*</span></label>
+        <select id="f-equip">
+          <option value="">Selecionar equipamento...</option>
+          <option>⚙️ Moinho 1</option>
+          <option>⚙️ Moinho 2</option>
+          <option>🏭 Ensacadeira e Paletizadora 1</option>
+          <option>🏭 Ensacadeira e Paletizadora 2</option>
+          <option>🚜 Retomadora</option>
+          <option>🖥️ Icon</option>
+          <option>🚿 Lavador de Pneus</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Processo <span class="req">*</span></label>
+        <select id="f-sistema">
+          <option value="">Selecionar processo...</option>
+          <option>🏭 Silos</option>
+          <option>🚛 Transporte Ferroviário, Rodoviário e Matéria Prima</option>
+          <option>🔥 Extração de Clinquer</option>
+          <option>🏭 Desga</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Motivo do Force <span class="req">*</span></label>
+        <textarea id="f-motivo" placeholder="Descreva o motivo técnico, condição operacional atual e impacto esperado..."></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">✅ Aprovação</div>
+      <div class="field">
+        <label>Aprovador Responsável <span class="req">*</span></label>
+        <select id="f-aprov">
+          <option value="">Selecionar aprovador...</option>
+          <option value="Rodrigo Rodrigues Lima|5524981252166">Rodrigo Rodrigues Lima</option>
+          <option value="Gustavo de Souza Andrade|5524992784067">Gustavo de Souza Andrade</option>
+          <option value="Andre Fabiano Peres|5524992232860">Andre Fabiano Peres</option>
+          <option value="Igor Machado de Melo|5524981180296">Igor Machado de Melo</option>
+        </select>
+        <div style="font-size:.72rem;color:#9CA3AF;margin-top:5px;">O aprovador receberá a solicitação via WhatsApp com a mensagem formatada.</div>
+      </div>
+    </div>
+
+    <button class="btn" onclick="submit()">📤 Enviar Solicitação</button>
+  </div>
+
+  <!-- Loading -->
+  <div id="loading">
+    <div class="spin"></div>
+    <div style="font-size:.88rem;color:#6B7280;">Registrando solicitação...</div>
+  </div>
+
+  <!-- Sucesso -->
+  <div id="success">
+    <div class="succ-icon">✅</div>
+    <div class="succ-title">Solicitação Enviada!</div>
+    <div class="succ-sub">Sua solicitação foi registrada. O WhatsApp do aprovador será aberto automaticamente. <strong>Aguarde a resposta antes de executar o force.</strong></div>
+    <div class="proto-box" id="proto-box">🔖 Protocolo: —</div>
+    <div>
+      <a id="btn-wpp" class="btn-wpp" href="#" target="_blank">📲 Abrir WhatsApp do Aprovador</a>
+    </div>
+    <div>
+      <button class="btn-back" onclick="resetForm()">← Nova Solicitação</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Firebase Realtime Database (REST — sem SDK, sem configuração extra) ───
+// Mesma URL já usada no app principal
+var FB_URL = 'https://csn-automacao-default-rtdb.firebaseio.com';
+
+function pad(n){ return String(n).padStart(2,'0'); }
+
+function getTs(){
+  var d=new Date();
+  return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear()+
+         ' '+pad(d.getHours())+':'+pad(d.getMinutes());
+}
+
+function getProto(){
+  var d=new Date();
+  return 'FC-'+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'-'+String(Date.now()).slice(-4);
+}
+
+function buildWppMsg(f, proto){
+  return encodeURIComponent(
+    '🧲 *SOLICITAÇÃO DE FORCE – CLP*\n' +
+    '━━━━━━━━━━━━━━━━━━━━\n' +
+    '📋 *Protocolo:* ' + proto + '\n' +
+    '📅 *Data/Hora:* ' + f.data + '\n\n' +
+    '👤 *Solicitante:* ' + f.solicitante + '\n' +
+    '🪪 *Matrícula:* ' + f.matricula + '\n\n' +
+    '🏷 *Tag/Condição:* `' + f.tag + '`\n' +
+    '⚙️ *Equipamento:* ' + f.equipamento + '\n' +
+    '🏭 *Processo:* ' + f.processo + '\n\n' +
+    '📝 *Motivo:*\n_' + f.motivo + '_\n\n' +
+    '━━━━━━━━━━━━━━━━━━━━\n' +
+    '⚖️ *DECISÃO DO APROVADOR:*\n' +
+    'Responda este chat com:\n' +
+    '✅ *APROVAR ' + proto + '* – para aprovar\n' +
+    '❌ *REJEITAR ' + proto + '* – para rejeitar\n\n' +
+    '_CSN Cimentos – Automação e Manutenção_'
+  );
+}
+
+function submit(){
+  var nome   = document.getElementById('f-nome').value.trim();
+  var mat    = document.getElementById('f-mat').value.trim();
+  var tag    = document.getElementById('f-tag').value.trim();
+  var equip  = document.getElementById('f-equip').value.trim();
+  var sist   = document.getElementById('f-sistema').value;
+  var motivo = document.getElementById('f-motivo').value.trim();
+  var aprovV = document.getElementById('f-aprov').value;
+
+  if(!nome)   { alert('Informe seu nome completo.'); return; }
+  if(!mat)    { alert('Informe sua matrícula.'); return; }
+  if(!tag)    { alert('Informe a Tag/Condição a ser forçada.'); return; }
+  if(!equip)  { alert('Selecione o equipamento.'); return; }
+  if(!sist)   { alert('Selecione o processo.'); return; }
+  if(!motivo) { alert('O motivo é obrigatório.'); return; }
+  if(!aprovV) { alert('Selecione o aprovador.'); return; }
+
+  var aprovParts = aprovV.split('|');
+  var aprovNome  = aprovParts[0] || '';
+  var aprovFone  = aprovParts[1] || '';
+  var proto      = getProto();
+  var agora      = getTs();
+
+  var obj = {
+    id:          proto,
+    data:        agora,
+    solicitante: nome,
+    matricula:   mat,
+    tag:         tag,
+    equipamento: equip,
+    processo:    sist,
+    sistema:     equip + ' / ' + sist,
+    motivo:      motivo,
+    aprovador:   aprovNome,
+    aprovFone:   aprovFone,
+    status:      'aguardando',
+    origem:      'externo',
+    audit:       [{ acao:'Solicitado (formulário externo)', por:nome, ts:agora }]
+  };
+
+  // Mostra loading
+  document.getElementById('form-area').style.display = 'none';
+  document.getElementById('loading').style.display   = 'block';
+
+  // Salva no Firebase via REST (mesma forma que o app principal usa)
+  fetch(FB_URL + '/force_solicits/' + proto + '.json', {
+    method:  'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify(obj)
+  })
+  .then(function(){ showSuccess(obj, proto, aprovFone); })
+  .catch(function(){
+    // Mesmo sem internet, mostra sucesso e abre WhatsApp
+    showSuccess(obj, proto, aprovFone);
+  });
+}
+
+function showSuccess(obj, proto, aprovFone){
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('success').style.display = 'block';
+  document.getElementById('proto-box').textContent  = '🔖 Protocolo: ' + proto;
+
+  var wppLink = 'https://wa.me/' + aprovFone + '?text=' + buildWppMsg(obj, proto);
+  document.getElementById('btn-wpp').href = wppLink;
+
+  // Abre WhatsApp automaticamente após 1.5s
+  setTimeout(function(){ window.open(wppLink, '_blank'); }, 1500);
+}
+
+function resetForm(){
+  document.getElementById('success').style.display   = 'none';
+  document.getElementById('form-area').style.display = 'block';
+  ['f-nome','f-mat','f-tag','f-valor','f-motivo'].forEach(function(id){
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('f-sistema').selectedIndex = 0;
+  document.getElementById('f-aprov').selectedIndex   = 0;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aprovação de Force – CSN Cimentos</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;background:#f0ebf8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.card{background:#fff;border-radius:20px;padding:28px 24px;max-width:440px;width:100%;box-shadow:0 8px 32px rgba(76,29,149,.12);border:1px solid rgba(139,92,246,.15);}
+.logo{text-align:center;margin-bottom:20px;}
+.logo-icon{font-size:2.5rem;}
+.logo-title{font-size:1rem;font-weight:800;color:#1F2937;margin-top:6px;}
+.logo-sub{font-size:.75rem;color:#6B7280;margin-top:3px;}
+.info-row{display:flex;padding:10px 0;border-bottom:1px solid #F3F4F6;}
+.info-row:last-of-type{border-bottom:none;}
+.info-lbl{font-size:.75rem;color:#9CA3AF;width:110px;flex-shrink:0;font-weight:600;}
+.info-val{font-size:.82rem;color:#1F2937;font-weight:600;flex:1;}
+.info-val.tag{font-family:monospace;color:#7C3AED;font-size:.9rem;}
+.status-bar{text-align:center;padding:12px;border-radius:12px;font-weight:800;font-size:.95rem;margin:16px 0;}
+.status-wait{background:#FFF8E1;color:#F59E0B;}
+.status-ok{background:#E8F5E9;color:#43A047;}
+.status-no{background:#FFEBEE;color:#E53935;}
+.btn-row{display:flex;gap:10px;margin-top:20px;}
+.btn{flex:1;padding:14px;border:none;border-radius:12px;font-size:.92rem;font-weight:800;cursor:pointer;transition:opacity .2s;}
+.btn:hover{opacity:.88;}
+.btn-yes{background:linear-gradient(135deg,#43A047,#2E7D32);color:#fff;}
+.btn-no{background:linear-gradient(135deg,#E53935,#B71C1C);color:#fff;}
+.field{margin-top:14px;}
+label{display:block;font-size:.72rem;font-weight:700;color:#6B7280;margin-bottom:5px;text-transform:uppercase;}
+textarea{width:100%;padding:10px 12px;border:1.5px solid #E5E7EB;border-radius:10px;font-size:.85rem;resize:none;min-height:70px;font-family:inherit;outline:none;}
+textarea:focus{border-color:#7C3AED;}
+.spin{width:28px;height:28px;border:3px solid #E5E7EB;border-top-color:#7C3AED;border-radius:50%;animation:sp .7s linear infinite;margin:16px auto;}
+@keyframes sp{to{transform:rotate(360deg)}}
+.msg{text-align:center;padding:16px;font-size:.88rem;color:#6B7280;}
+.err{color:#E53935;font-size:.8rem;margin-top:8px;text-align:center;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">🧲</div>
+    <div class="logo-title">Aprovação de Force CLP</div>
+    <div class="logo-sub">CSN Cimentos · Automação e Manutenção</div>
+  </div>
+
+  <div id="loading"><div class="spin"></div><div class="msg">Carregando solicitação...</div></div>
+  <div id="content" style="display:none">
+    <div class="status-bar status-wait" id="status-bar">⏳ Aguardando Decisão</div>
+    <div class="info-row"><div class="info-lbl">Protocolo</div><div class="info-val tag" id="d-proto">—</div></div>
+    <div class="info-row"><div class="info-lbl">Data</div><div class="info-val" id="d-data">—</div></div>
+    <div class="info-row"><div class="info-lbl">Solicitante</div><div class="info-val" id="d-solicit">—</div></div>
+    <div class="info-row"><div class="info-lbl">Matrícula</div><div class="info-val" id="d-mat">—</div></div>
+    <div class="info-row"><div class="info-lbl">Equipamento</div><div class="info-val" id="d-equip">—</div></div>
+    <div class="info-row"><div class="info-lbl">Processo</div><div class="info-val" id="d-proc">—</div></div>
+    <div class="info-row"><div class="info-lbl">Tag</div><div class="info-val tag" id="d-tag">—</div></div>
+    <div class="info-row"><div class="info-lbl">Motivo</div><div class="info-val" id="d-motivo" style="font-style:italic;">—</div></div>
+
+    <div id="action-area">
+      <div class="field">
+        <label>Comentário (obrigatório ao rejeitar)</label>
+        <textarea id="comentario" placeholder="Informe o motivo da decisão..."></textarea>
+      </div>
+      <div id="err-msg" class="err" style="display:none"></div>
+      <div class="btn-row">
+        <button class="btn btn-no"  onclick="decide('rejeitado')">❌ Rejeitar</button>
+        <button class="btn btn-yes" onclick="decide('aprovado')">✅ Aprovar</button>
+      </div>
+    </div>
+
+    <div id="done-area" style="display:none;text-align:center;padding:16px 0;">
+      <div style="font-size:2.5rem;margin-bottom:10px" id="done-icon">✅</div>
+      <div style="font-weight:800;font-size:1rem;color:#1F2937" id="done-title">Decisão Registrada</div>
+      <div style="font-size:.82rem;color:#6B7280;margin-top:6px" id="done-sub">O app foi atualizado automaticamente.</div>
+    </div>
+  </div>
+  <div id="err-area" style="display:none;text-align:center;padding:20px;">
+    <div style="font-size:2rem">❌</div>
+    <div style="font-size:.9rem;color:#E53935;margin-top:8px">Solicitação não encontrada.</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+emailjs.init("E8Et2-vUNCCW9VzlX");
+var FB_URL = 'https://csn-automacao-default-rtdb.firebaseio.com';
+// E-mails para notificação (serão enviados via EmailJS)
+var NOTIFY_EMAILS = ['ronan.moreira@csn.com.br','rodrigo.lima@csn.com.br'];
+
+// EmailJS config (gratuito até 200 emails/mês)
+var EMAILJS_SVC  = 'service_swmu9d3';
+var EMAILJS_TMPL = 'template_8jnpd06';
+var EMAILJS_KEY  = 'E8Et2-vUNCCW9VzlX';
+
+var proto = new URLSearchParams(window.location.search).get('id');
+var forceData = null;
+
+function pad(n){ return String(n).padStart(2,'0'); }
+function getTs(){
+  var d=new Date();
+  return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear()+
+         ' '+pad(d.getHours())+':'+pad(d.getMinutes());
+}
+
+function setText(id, v){ var e=document.getElementById(id); if(e) e.textContent=v||'—'; }
+
+function loadForce(){
+  if(!proto){ showErr(); return; }
+  fetch(FB_URL+'/force_solicits/'+proto+'.json')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(!data){ showErr(); return; }
+      forceData = data;
+      document.getElementById('loading').style.display='none';
+      document.getElementById('content').style.display='block';
+      setText('d-proto',  data.id);
+      setText('d-data',   data.data);
+      setText('d-solicit',data.solicitante);
+      setText('d-mat',    data.matricula);
+      setText('d-equip',  data.equipamento||data.sistema||'—');
+      setText('d-proc',   data.processo||'—');
+      setText('d-tag',    data.tag);
+      setText('d-motivo', data.motivo);
+
+      if(data.status !== 'aguardando'){
+        showDone(data.status, data.comentario);
+      }
+    })
+    .catch(showErr);
+}
+
+function decide(decisao){
+  var comm = document.getElementById('comentario').value.trim();
+  if(decisao==='rejeitado' && !comm){
+    var err=document.getElementById('err-msg');
+    err.textContent='Comentário obrigatório ao rejeitar.';
+    err.style.display='block';
+    return;
+  }
+  document.getElementById('err-msg').style.display='none';
+  document.getElementById('action-area').style.pointerEvents='none';
+  document.getElementById('action-area').style.opacity='.5';
+
+  var ts = getTs();
+  forceData.status     = decisao;
+  forceData.comentario = comm;
+  forceData.audit = forceData.audit||[];
+  forceData.audit.push({ acao: decisao==='aprovado'?'Aprovado':'Rejeitado', por:forceData.aprovador, ts:ts });
+
+  fetch(FB_URL+'/force_solicits/'+proto+'.json',{
+    method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(forceData)
+  })
+  .then(function(){
+    sendEmailNotification(decisao, comm, ts);
+    showDone(decisao, comm);
+  })
+  .catch(function(){
+    sendEmailNotification(decisao, comm, ts);
+    showDone(decisao, comm);
+  });
+}
+
+function showDone(decisao, comm){
+  document.getElementById('action-area').style.display='none';
+  document.getElementById('done-area').style.display='block';
+  var sb = document.getElementById('status-bar');
+  if(decisao==='aprovado'){
+    sb.className='status-bar status-ok'; sb.textContent='✅ APROVADO';
+    document.getElementById('done-icon').textContent='✅';
+    document.getElementById('done-title').textContent='Force APROVADO!';
+  } else {
+    sb.className='status-bar status-no'; sb.textContent='❌ REJEITADO';
+    document.getElementById('done-icon').textContent='❌';
+    document.getElementById('done-title').textContent='Force REJEITADO';
+  }
+  if(comm) document.getElementById('done-sub').textContent='Comentário: '+comm;
+}
+
+function showErr(){
+  document.getElementById('loading').style.display='none';
+  document.getElementById('err-area').style.display='block';
+}
+
+// ── Envio de e-mail via EmailJS ───────────────────
+function sendEmailNotification(decisao, comm, ts){
+  if(!forceData) return;
+  try{
+    var subject = decisao==='aprovado'
+      ? '✅ Force APROVADO – '+forceData.tag+' ('+proto+')'
+      : '❌ Force REJEITADO – '+forceData.tag+' ('+proto+')';
+    var body =
+      'Decisão: '+(decisao==='aprovado'?'APROVADO':'REJEITADO')+'\n'+
+      'Protocolo: '+proto+'\n'+
+      'Data decisão: '+ts+'\n'+
+      'Aprovador: '+forceData.aprovador+'\n\n'+
+      'Solicitante: '+forceData.solicitante+' (Mat: '+(forceData.matricula||'—')+')\n'+
+      'Equipamento: '+(forceData.equipamento||'—')+'\n'+
+      'Processo: '+(forceData.processo||'—')+'\n'+
+      'Tag: '+forceData.tag+'\n'+
+      'Motivo: '+forceData.motivo+'\n'+
+      (comm?'Comentário aprovador: '+comm+'\n':'');
+
+    NOTIFY_EMAILS.forEach(function(email){
+      emailjs.send(EMAILJS_SVC, EMAILJS_TMPL, {
+        to_email:    email,
+        subject:     subject,
+        message:     body,
+        proto:       proto,
+        decisao:     decisao.toUpperCase(),
+        tag:         forceData.tag,
+        aprovador:   forceData.aprovador,
+        solicitante: forceData.solicitante
+      }).catch(function(){});
+    });
+  }catch(e){}
+}
+
+loadForce();
+</script>
+</body>
+</html>

@@ -684,6 +684,73 @@ body.dark [style*="color:var(--g500)"]{color:#94a3b8 !important;}
   background:#A855F7;width:22px;border-radius:4px;
   box-shadow:0 0 8px rgba(168,85,247,.7);
 }
+
+/* ══ FORCE CLP MODULE ══════════════════════════════════════ */
+.force-head{background:linear-gradient(160deg,#1e3a5f,#1565C0);padding:48px 20px 28px;position:relative;overflow:hidden;flex-shrink:0;border-radius:0 0 28px 28px;}
+.force-head::before{content:'';position:absolute;right:-20px;top:10px;width:140px;height:140px;background:rgba(255,255,255,.06);border-radius:50%;}
+.force-head-title{font-size:1.05rem;font-weight:800;color:#fff;position:relative;z-index:1;}
+.force-head-sub{font-size:.75rem;color:rgba(255,255,255,.65);margin-top:3px;position:relative;z-index:1;}
+
+/* Force list items */
+.force-item{background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);border:1px solid var(--g200);cursor:pointer;transition:transform .15s;}
+.force-item:active{transform:scale(.98);}
+.force-item-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.force-item-tag{font-size:.92rem;font-weight:700;color:var(--g900);}
+.force-item-equip{font-size:.75rem;color:var(--g500);margin-top:2px;}
+.force-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;}
+.force-badge.wait{background:#FFF8E1;color:#F59E0B;}
+.force-badge.aprov{background:#E8F5E9;color:#43A047;}
+.force-badge.rejeit{background:#FFEBEE;color:#E53935;}
+.force-badge.enc{background:#F5F5F5;color:#9E9E9E;}
+
+/* Force form */
+.force-sec{margin-bottom:14px;}
+.force-sec-label{font-size:.72rem;font-weight:700;color:var(--g500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+
+/* Review card */
+.force-rev-row{display:flex;padding:10px 0;border-bottom:1px solid var(--g100);}
+.force-rev-row:last-child{border-bottom:none;}
+.force-rev-lbl{font-size:.78rem;color:var(--g500);width:100px;flex-shrink:0;}
+.force-rev-val{font-size:.82rem;font-weight:600;color:var(--g900);flex:1;}
+
+/* Audit trail */
+.force-audit-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--g100);}
+.force-audit-item:last-child{border-bottom:none;}
+.force-audit-dot{width:10px;height:10px;border-radius:50%;background:var(--blue);margin-top:4px;flex-shrink:0;}
+.force-audit-dot.grn{background:#43A047;}
+.force-audit-dot.red{background:#E53935;}
+.force-audit-info{flex:1;}
+.force-audit-txt{font-size:.82rem;font-weight:600;color:var(--g900);}
+.force-audit-time{font-size:.72rem;color:var(--g500);margin-top:2px;}
+
+/* Approve buttons */
+.force-aprov-btn{flex:1;padding:14px;border:none;border-radius:12px;font-size:.9rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+.force-aprov-btn.yes{background:linear-gradient(135deg,#43A047,#2E7D32);color:#fff;}
+.force-aprov-btn.no{background:linear-gradient(135deg,#E53935,#B71C1C);color:#fff;}
+
+/* Dark mode */
+body.dark .force-item{background:#1a1a2e;border-color:#2d3748;}
+body.dark .force-item-tag{color:#f1f5f9;}
+body.dark .force-item-equip{color:#94a3b8;}
+body.dark .force-rev-row{border-color:#2d3748;}
+body.dark .force-rev-lbl{color:#94a3b8;}
+body.dark .force-rev-val{color:#f1f5f9;}
+body.dark .force-audit-item{border-color:#2d3748;}
+body.dark .force-audit-txt{color:#f1f5f9;}
+body.dark .force-audit-time{color:#94a3b8;}
+
+/* Force filter buttons */
+.force-filter-btn{
+  background:var(--g100);border:1.5px solid var(--g200);border-radius:20px;
+  padding:6px 14px;font-size:.75rem;font-weight:600;color:var(--g600);
+  cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .2s;
+}
+.force-filter-btn.act{
+  background:linear-gradient(135deg,#1565C0,#1e3a5f);
+  border-color:transparent;color:#fff;
+}
+body.dark .force-filter-btn{background:#1a1a2e;border-color:#2d3748;color:#94a3b8;}
+body.dark .force-filter-btn.act{background:linear-gradient(135deg,#1565C0,#1e3a5f);color:#fff;}
 </style>
 </head>
 <body>
@@ -835,6 +902,16 @@ body.dark [style*="color:var(--g500)"]{color:#94a3b8 !important;}
           <div class="dc-t">Indicadores</div>
           <div class="dc-s">Acompanhe metricas da equipe</div>
         </div>
+        <div class="dc" style="grid-column:1/-1;background:linear-gradient(135deg,#1e3a5f,#1565C0);border:none;" onclick="navTo('scr-force')">
+          <div style="display:flex;align-items:center;gap:12px;width:100%">
+            <div style="font-size:1.6rem">🧲</div>
+            <div>
+              <div class="dc-t" style="color:#fff;font-size:.95rem">Solicitação de Force CLP</div>
+              <div class="dc-s" style="color:rgba(255,255,255,.75)">Controle e aprovação de forces em variáveis</div>
+            </div>
+            <div style="margin-left:auto;color:rgba(255,255,255,.6);font-size:1.2rem">›</div>
+          </div>
+        </div>
         <div class="dc" style="grid-column:1/-1;background:linear-gradient(135deg,#3B0764,#6B21A8);border:none;" onclick="openFluxo()">
           <div style="display:flex;align-items:center;gap:12px;width:100%">
             <div style="font-size:1.6rem">🏗️</div>
@@ -852,7 +929,9 @@ body.dark [style*="color:var(--g500)"]{color:#94a3b8 !important;}
       </div>
       <div style="height:24px"></div>
     </div>
-    <div class="bottom-nav" id="bnav-dash">
+    
+
+<div class="bottom-nav" id="bnav-dash">
       <button class="bn-item act" onclick="navTo('scr-dash')"><span class="bn-icon">&#127968;</span><span class="bn-lbl">Inicio</span></button>
       <button class="bn-item" onclick="navTo('scr-history')"><span class="bn-icon">&#128203;</span><span class="bn-lbl">Relatorios</span></button>
       <button class="bn-item" onclick="startReport()" style="position:relative"><span class="bn-fab">&#43;</span><span class="bn-icon" style="margin-top:18px;opacity:0">.</span><span class="bn-lbl">Novo</span></button>
@@ -1290,6 +1369,247 @@ CREATE POLICY "Acesso publico" ON relatorios FOR ALL USING (true);</pre>
     <button onclick="document.getElementById('del-confirm-ov').classList.remove('show')" style="width:100%;padding:14px;background:var(--g100);border:none;border-radius:var(--r);color:var(--g600);font-size:.95rem;cursor:pointer;font-family:var(--font)">Cancelar</button>
   </div>
 </div>
+
+
+<!-- ══ TELA 01: LISTA DE SOLICITAÇÕES FORCE ══ -->
+<div class="screen" id="scr-force">
+  <div class="force-head">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;position:relative;z-index:1">
+      <button class="tb-back" onclick="navTo('scr-dash')" style="background:rgba(255,255,255,.15);border:none;border-radius:50%;width:34px;height:34px;color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">←</button>
+      <div style="flex:1">
+        <div class="force-head-title">🧲 Solicitações de Force CLP</div>
+        <div class="force-head-sub">Controle de forces em variáveis</div>
+      </div>
+      <button onclick="generateForceLink()" title="Gerar link do formulário externo" style="background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.25);border-radius:10px;padding:7px 12px;color:#fff;font-size:.75rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;flex-shrink:0;">
+        🔗 Link
+      </button>
+    </div>
+  </div>
+  <div class="scroll" style="padding:16px;">
+    <!-- Sync info -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="font-size:.72rem;color:var(--g500);">Solicitações locais + externas</div>
+      <button onclick="forceSyncFromFirebase();toast('Sincronizando...');" style="background:none;border:none;color:var(--blue);font-size:.75rem;font-weight:700;cursor:pointer;">↻ Sincronizar</button>
+    </div>
+    <!-- Filtro status -->
+    <div style="display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;">
+      <button class="force-filter-btn act" onclick="filterForce('all')" id="ff-all">Todos</button>
+      <button class="force-filter-btn" onclick="filterForce('aguardando')" id="ff-wait">⏳ Aguardando</button>
+      <button class="force-filter-btn" onclick="filterForce('aprovado')" id="ff-aprov">✅ Aprovado</button>
+      <button class="force-filter-btn" onclick="filterForce('rejeitado')" id="ff-rejeit">❌ Rejeitado</button>
+      <button class="force-filter-btn" onclick="filterForce('encerrado')" id="ff-enc">🛑 Encerrado</button>
+    </div>
+    <!-- Lista -->
+    <div id="force-list-container">
+      <div style="text-align:center;padding:40px 20px;color:var(--g400);">
+        <div style="font-size:2rem;margin-bottom:10px">🧲</div>
+        <div style="font-size:.88rem">Nenhuma solicitação ainda.<br>Toque em + para criar.</div>
+      </div>
+    </div>
+  </div>
+  <!-- FAB -->
+  <button onclick="openForceNew()" style="position:fixed;bottom:90px;right:20px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1565C0,#1e3a5f);border:none;color:#fff;font-size:1.4rem;cursor:pointer;box-shadow:0 4px 16px rgba(21,101,192,.5);z-index:50;display:flex;align-items:center;justify-content:center;" id="force-fab">+</button>
+  <div class="bottom-nav"><button class="bn-item" onclick="navTo('scr-dash')"><span class="bn-icon">&#127968;</span><span class="bn-lbl">Inicio</span></button><button class="bn-item" onclick="navTo('scr-history')"><span class="bn-icon">&#128203;</span><span class="bn-lbl">Relatorios</span></button><button class="bn-item" onclick="startReport()" style="position:relative"><span class="bn-fab">&#43;</span><span class="bn-icon" style="margin-top:18px;opacity:0">.</span><span class="bn-lbl">Novo</span></button><button class="bn-item act" onclick="navTo('scr-force')"><span class="bn-icon">&#129392;</span><span class="bn-lbl">Force</span></button><button class="bn-item" onclick="navTo('scr-profile')"><span class="bn-icon">&#128100;</span><span class="bn-lbl">Perfil</span></button></div>
+</div>
+
+<!-- ══ TELA 02: NOVA SOLICITAÇÃO ══ -->
+<div class="screen" id="scr-force-new">
+  <div class="topbar">
+    <div class="tb-row">
+      <button class="tb-back" onclick="navTo('scr-force')">←</button>
+      <div class="tb-title">Nova Solicitação de Force</div>
+    </div>
+    <div class="step-bar" id="force-step-bar">
+      <div class="step-dot done" id="fsd-1"><span>1</span></div>
+      <div class="step-line"></div>
+      <div class="step-dot" id="fsd-2"><span>2</span></div>
+    </div>
+  </div>
+  <div class="scroll" style="padding:16px;">
+    <div class="form-card">
+      <div class="force-sec">
+        <div class="force-sec-label">📅 Data</div>
+        <input type="text" class="fi" id="force-data" readonly style="background:var(--g50);">
+      </div>
+      <div class="force-sec">
+        <div class="force-sec-label">👤 Solicitante</div>
+        <input type="text" class="fi" id="force-solicit" readonly style="background:var(--g50);">
+      </div>
+      <div class="force-sec">
+        <div class="force-sec-label">👤 Aprovador</div>
+        <select class="fi" id="force-aprov-sel">
+          <option value="">Selecionar aprovador...</option>
+          <option>Rodrigo Rodrigues Lima</option>
+          <option>Gustavo de Souza Andrade</option>
+          <option>Andre Fabiano Peres</option>
+          <option>Igor Machado de Melo</option>
+        </select>
+      </div>
+      <div class="force-sec">
+        <div class="force-sec-label">🏷 Tag do Equipamento / Variável</div>
+        <input type="text" class="fi" id="force-tag" placeholder="Ex: MTR_R4_RUN" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
+        <div id="force-tag-sugest" style="display:none;background:#fff;border:1px solid var(--g200);border-radius:10px;margin-top:4px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.08);"></div>
+      </div>
+      <div class="force-sec">
+        <div class="force-sec-label">⚙️ Equipamento</div>
+        <select class="fi" id="force-equip">
+          <option value="">Selecionar equipamento...</option>
+          <option>⚙️ Moinho 1</option>
+          <option>⚙️ Moinho 2</option>
+          <option>🏭 Ensacadeira e Paletizadora 1</option>
+          <option>🏭 Ensacadeira e Paletizadora 2</option>
+          <option>🚜 Retomadora</option>
+          <option>🖥️ Icon</option>
+          <option>🚿 Lavador de Pneus</option>
+        </select>
+      </div>
+      <div class="force-sec">
+        <div class="force-sec-label">🏭 Processo</div>
+        <select class="fi" id="force-sistema">
+          <option value="">Selecionar processo...</option>
+          <option>🏭 Silos</option>
+          <option>🚛 Transporte Ferroviário, Rodoviário e Matéria Prima</option>
+          <option>🔥 Extração de Clinquer</option>
+          <option>🏭 Desga</option>
+        </select>
+      </div>
+      <div class="force-sec">
+        <div class="force-sec-label">📝 Motivo do Force</div>
+        <textarea class="fi" id="force-motivo" rows="4" placeholder="Descreva o motivo técnico do force, condição operacional e impacto esperado..." style="resize:none;min-height:100px;"></textarea>
+      </div>
+
+    </div>
+    <div style="height:16px;"></div>
+  </div>
+  <div style="padding:12px 16px 28px;background:#fff;border-top:1px solid var(--g200);flex-shrink:0;">
+    <button onclick="openForceReview()" style="width:100%;padding:14px;background:linear-gradient(135deg,#1565C0,#1e3a5f);border:none;border-radius:14px;color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;">
+      Revisar Solicitação →
+    </button>
+  </div>
+</div>
+
+<!-- ══ TELA 03: REVISÃO ══ -->
+<div class="screen" id="scr-force-review">
+  <div class="topbar">
+    <div class="tb-row">
+      <button class="tb-back" onclick="navTo('scr-force-new')">←</button>
+      <div class="tb-title">Revisar Solicitação</div>
+    </div>
+  </div>
+  <div class="scroll" style="padding:16px;">
+    <div style="background:#FFF8E1;border:1px solid #F59E0B;border-radius:12px;padding:12px 14px;margin-bottom:14px;display:flex;gap:10px;align-items:flex-start;">
+      <span style="font-size:1.1rem;">⚠️</span>
+      <div style="font-size:.8rem;color:#92400E;line-height:1.5;">
+        <strong>Atenção:</strong> Force em variável de CLP em produção. Confirme todos os dados antes de enviar para aprovação.
+      </div>
+    </div>
+    <div class="form-card">
+      <div style="font-size:.82rem;font-weight:800;color:var(--blue);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;">📋 Dados da Solicitação</div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Data</div><div class="force-rev-val" id="rev-data">—</div></div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Solicitante</div><div class="force-rev-val" id="rev-solicit">—</div></div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Aprovador</div><div class="force-rev-val" id="rev-aprov">—</div></div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Tag</div><div class="force-rev-val" id="rev-tag" style="font-family:monospace;font-size:.9rem;color:var(--blue);">—</div></div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Equip/Proc</div><div class="force-rev-val" id="rev-sistema">—</div></div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Valor</div><div class="force-rev-val" id="rev-valor">—</div></div>
+      <div class="force-rev-row" style="flex-direction:column;gap:4px;">
+        <div class="force-rev-lbl">Motivo</div>
+        <div class="force-rev-val" id="rev-motivo" style="font-style:italic;color:var(--g700);">—</div>
+      </div>
+    </div>
+    <div style="height:16px;"></div>
+  </div>
+  <div style="padding:12px 16px 28px;background:#fff;border-top:1px solid var(--g200);flex-shrink:0;display:flex;gap:10px;">
+    <button onclick="navTo('scr-force-new')" style="flex:1;padding:14px;background:var(--g100);border:none;border-radius:14px;color:var(--g700);font-size:.9rem;font-weight:700;cursor:pointer;">← Voltar</button>
+    <button onclick="submitForce()" style="flex:2;padding:14px;background:linear-gradient(135deg,#1565C0,#1e3a5f);border:none;border-radius:14px;color:#fff;font-size:.9rem;font-weight:700;cursor:pointer;">📤 Enviar Solicitação</button>
+  </div>
+</div>
+
+<!-- ══ TELA 04: APROVAÇÃO ══ -->
+<div class="screen" id="scr-force-aprov">
+  <div class="topbar">
+    <div class="tb-row">
+      <button class="tb-back" onclick="navTo('scr-force-detail')">←</button>
+      <div class="tb-title">Aprovação de Force</div>
+    </div>
+  </div>
+  <div class="scroll" style="padding:16px;">
+    <div class="form-card" style="border-top:4px solid #F59E0B;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+        <span style="font-size:1.3rem;">⏳</span>
+        <div style="font-size:.9rem;font-weight:800;color:#F59E0B;">Aguardando Aprovação</div>
+      </div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Solicitante</div><div class="force-rev-val" id="aprov-solicit">—</div></div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Tag</div><div class="force-rev-val" id="aprov-tag" style="font-family:monospace;color:var(--blue);">—</div></div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Sistema</div><div class="force-rev-val" id="aprov-sistema">—</div></div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Valor Force</div><div class="force-rev-val" id="aprov-valor">—</div></div>
+      <div class="force-rev-row" style="flex-direction:column;gap:4px;">
+        <div class="force-rev-lbl">Motivo</div>
+        <div class="force-rev-val" id="aprov-motivo" style="font-style:italic;">—</div>
+      </div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Solicitado em</div><div class="force-rev-val" id="aprov-data">—</div></div>
+    </div>
+    <div class="form-card" style="margin-top:12px;">
+      <div style="font-size:.78rem;font-weight:700;color:var(--g500);margin-bottom:8px;">💬 COMENTÁRIO DO APROVADOR</div>
+      <textarea class="fi" id="aprov-comment" rows="3" placeholder="Obrigatório ao rejeitar. Opcional ao aprovar..." style="resize:none;"></textarea>
+    </div>
+    <div style="height:16px;"></div>
+  </div>
+  <div style="padding:12px 16px 28px;background:#fff;border-top:1px solid var(--g200);flex-shrink:0;display:flex;gap:10px;">
+    <button class="force-aprov-btn no" onclick="decideForce('rejeitado')">❌ Rejeitar</button>
+    <button class="force-aprov-btn yes" onclick="decideForce('aprovado')">✅ Aprovar</button>
+  </div>
+</div>
+
+<!-- ══ TELA 05: DETALHE / AUDITORIA ══ -->
+<div class="screen" id="scr-force-detail">
+  <div class="topbar">
+    <div class="tb-row">
+      <button class="tb-back" onclick="navTo('scr-force')">←</button>
+      <div class="tb-title">Detalhe da Solicitação</div>
+    </div>
+  </div>
+  <div class="scroll" style="padding:16px;">
+    <!-- Status badge grande -->
+    <div id="detail-status-bar" style="text-align:center;padding:14px;border-radius:14px;margin-bottom:14px;font-weight:800;font-size:.95rem;"></div>
+
+    <!-- Dados -->
+    <div class="form-card">
+      <div style="font-size:.78rem;font-weight:700;color:var(--blue);margin-bottom:10px;">📋 DADOS DO FORCE</div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Tag</div><div class="force-rev-val" id="detail-tag" style="font-family:monospace;color:var(--blue);">—</div></div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Equipamento</div><div class="force-rev-val" id="detail-sistema">—</div></div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Processo</div><div class="force-rev-val" id="detail-valor">—</div></div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Solicitante</div><div class="force-rev-val" id="detail-solicit">—</div></div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Aprovador</div><div class="force-rev-val" id="detail-aprov">—</div></div>
+      <div class="force-rev-row" style="flex-direction:column;gap:4px;">
+        <div class="force-rev-lbl">Motivo</div>
+        <div class="force-rev-val" id="detail-motivo" style="font-style:italic;">—</div>
+      </div>
+    </div>
+
+    <!-- Trilha de auditoria -->
+    <div class="form-card" style="margin-top:12px;">
+      <div style="font-size:.78rem;font-weight:700;color:var(--g500);margin-bottom:12px;">🔍 HISTÓRICO / AUDITORIA</div>
+      <div id="detail-audit"></div>
+    </div>
+
+    <!-- Comentário do aprovador -->
+    <div class="form-card" id="detail-comment-card" style="margin-top:12px;display:none;">
+      <div style="font-size:.78rem;font-weight:700;color:var(--g500);margin-bottom:6px;">💬 COMENTÁRIO DO APROVADOR</div>
+      <div id="detail-comment" style="font-size:.85rem;color:var(--g700);font-style:italic;"></div>
+    </div>
+
+    <div style="height:16px;"></div>
+
+    <!-- Botão aprovar (se pendente e usuário é aprovador) -->
+    <div id="detail-aprov-btn-wrap" style="display:none;margin-bottom:12px;">
+      <button onclick="openAprovacao()" style="width:100%;padding:14px;background:linear-gradient(135deg,#1565C0,#1e3a5f);border:none;border-radius:14px;color:#fff;font-size:.9rem;font-weight:700;cursor:pointer;">⚖️ Aprovar / Rejeitar</button>
+    </div>
+    <!-- Botão encerrar (se aprovado) -->
+    <div id="detail-enc-btn-wrap" style="display:none;margin-bottom:12px;">
+      <button onclick="encerrarForce()" style="width:100%;padding:14px;background:#607D8B;border:none;border-radius:14px;color:#fff;font-size:.9rem;font-weight:700;cursor:pointer;">🛑 Encerrar Force</button>
+    </div>
+  </div>
+</div>
 </div><!-- #app -->
 <div id="toast"></div>
 <script>
@@ -1525,6 +1845,7 @@ function navTo(id){
   var el=document.getElementById(id);if(el)el.classList.add('active');
   if(id==='scr-indicators')renderIndicators();
   if(id==='scr-history')renderHistory();
+  if(id==='scr-force')try{renderForceList();}catch(e){}
   if(id==='scr-profile')refreshProfile();
 }
 
@@ -3304,6 +3625,403 @@ function _renderFluxo(){
   if(prev) prev.style.opacity = fluxoIdx === 0 ? '0.35' : '1';
   if(next) next.textContent = fluxoIdx === FLUXO_TOTAL-1 ? '✓ Fechar' : 'Próxima ›';
 }
+</script>
+<script>
+
+// ══════════════════════════════════════════════════════════
+// MÓDULO: FORCE CLP
+// ══════════════════════════════════════════════════════════
+var FORCE_KEY = 'force_solicits_v1';
+var FORCE_CURRENT = null; // solicitação em edição/visualização
+var FORCE_FILTER  = 'all';
+
+// Tags sugeridas (autocomplete)
+var FORCE_TAGS = [
+  'MTR_R4_RUN','MTR_R3_RUN','MTR_P3_RUN','MTR_P4_RUN',
+  'VAL_R4_AUTO','VAL_P3_AUTO','VAL_P4_AUTO',
+  'BOM_R4_ON','BOM_P3_ON','BOM_P4_ON',
+  'SEN_R4_TEMP','SEN_P3_PRES','CNV_R4_SPD',
+  'ALM_R4_FLT','ALM_P3_FLT','INV_R4_REF',
+];
+
+function loadForces() {
+  try { return JSON.parse(localStorage.getItem(FORCE_KEY) || '[]'); } catch(e){ return []; }
+}
+function saveForces(arr) {
+  try { localStorage.setItem(FORCE_KEY, JSON.stringify(arr)); } catch(e){}
+}
+
+function forceStatusBadge(s) {
+  var map = {
+    'aguardando': '<span class="force-badge wait">⏳ Aguardando</span>',
+    'aprovado':   '<span class="force-badge aprov">✅ Aprovado</span>',
+    'rejeitado':  '<span class="force-badge rejeit">❌ Rejeitado</span>',
+    'encerrado':  '<span class="force-badge enc">🛑 Encerrado</span>',
+  };
+  return map[s] || '<span class="force-badge">'+s+'</span>';
+}
+
+function renderForceList() {
+  var forces = loadForces();
+  var container = document.getElementById('force-list-container');
+  if(!container) return;
+
+  var filtered = FORCE_FILTER === 'all' ? forces : forces.filter(function(f){ return f.status === FORCE_FILTER; });
+
+  if(!filtered.length) {
+    var msg = FORCE_FILTER === 'all' ? 'Nenhuma solicitação ainda.<br>Toque em + para criar.' : 'Nenhuma solicitação com este status.';
+    container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--g400);"><div style="font-size:2rem;margin-bottom:10px">🧲</div><div style="font-size:.88rem">'+msg+'</div></div>';
+    return;
+  }
+
+  // Sort: aguardando first
+  filtered = filtered.slice().sort(function(a,b){
+    var ord = {aguardando:0,aprovado:1,rejeitado:2,encerrado:3};
+    return (ord[a.status]||9) - (ord[b.status]||9);
+  });
+
+  container.innerHTML = filtered.map(function(f) {
+    return '<div class="force-item" onclick="openForceDetail(\''+f.id+'\')">'+
+      '<div class="force-item-top">'+
+        '<div>'+
+          '<div class="force-item-tag">'+f.tag+'</div>'+
+          '<div class="force-item-equip">'+f.sistema+' &nbsp;·&nbsp; Valor: '+f.valor+'</div>'+
+        '</div>'+
+        forceStatusBadge(f.status)+
+      '</div>'+
+      '<div style="font-size:.75rem;color:var(--g500);">Solicitante: '+f.solicitante+' &nbsp;·&nbsp; '+f.data+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+function filterForce(filter) {
+  FORCE_FILTER = filter;
+  document.querySelectorAll('.force-filter-btn').forEach(function(b){ b.classList.remove('act'); });
+  var el = document.getElementById('ff-'+(filter==='all'?'all':filter==='aguardando'?'wait':filter==='aprovado'?'aprov':filter==='rejeitado'?'rejeit':'enc'));
+  if(el) el.classList.add('act');
+  renderForceList();
+}
+
+function openForceNew() {
+  FORCE_CURRENT = null;
+  // Auto-fill date
+  var now = new Date();
+  var df = String(now.getDate()).padStart(2,'0')+'/'+String(now.getMonth()+1).padStart(2,'0')+'/'+now.getFullYear();
+  var el = document.getElementById('force-data');
+  if(el) el.value = df;
+  // Auto-fill solicitante from profile
+  var nome = localStorage.getItem('p-nome') || localStorage.getItem('rn1') || 'Usuário';
+  var sel = document.getElementById('force-solicit');
+  if(sel) sel.value = nome;
+  // Clear fields
+  ['force-tag','force-motivo','force-valor'].forEach(function(id){
+    var f = document.getElementById(id);
+    if(f) f.value = '';
+  });
+  ['force-aprov-sel','force-sistema','force-tipo-val'].forEach(function(id){
+    var f = document.getElementById(id);
+    if(f) f.selectedIndex = 0;
+  });
+  navTo('scr-force-new');
+  // Setup tag autocomplete
+  setupForceTagAC();
+}
+
+function setupForceTagAC() {
+  var inp = document.getElementById('force-tag');
+  var sug = document.getElementById('force-tag-sugest');
+  if(!inp || !sug) return;
+  inp.addEventListener('input', function() {
+    var v = this.value.toUpperCase();
+    if(v.length < 2){ sug.style.display='none'; return; }
+    var matches = FORCE_TAGS.filter(function(t){ return t.indexOf(v) !== -1; });
+    if(!matches.length){ sug.style.display='none'; return; }
+    sug.innerHTML = matches.slice(0,5).map(function(t){
+      return '<div onclick="selectForceTag(\''+t+'\''+')" style="padding:10px 14px;font-size:.85rem;font-family:monospace;border-bottom:1px solid var(--g100);cursor:pointer;">'+t+'</div>';
+    }).join('');
+    sug.style.display = 'block';
+  });
+}
+function selectForceTag(tag) {
+  var inp = document.getElementById('force-tag');
+  var sug = document.getElementById('force-tag-sugest');
+  if(inp) inp.value = tag;
+  if(sug) sug.style.display = 'none';
+}
+
+function openForceReview() {
+  var tag    = (document.getElementById('force-tag')||{}).value||'';
+  var aprov  = (document.getElementById('force-aprov-sel')||{}).value||'';
+  var sist   = (document.getElementById('force-sistema')||{}).value||'';
+  var motivo = (document.getElementById('force-motivo')||{}).value||'';
+  var equip  = (document.getElementById('force-equip')||{}).value||'';
+
+  if(!tag)    { toast('Informe a Tag do equipamento'); return; }
+  if(!aprov)  { toast('Selecione o aprovador'); return; }
+  if(!sist)   { toast('Selecione o sistema/CLP'); return; }
+  if(!motivo) { toast('O motivo do force é obrigatório'); return; }
+  if(!equip)  { toast('Selecione o equipamento'); return; }
+
+  // Fill review screen
+  var set = function(id, v){ var e=document.getElementById(id); if(e) e.textContent=v; };
+  set('rev-data',    (document.getElementById('force-data')||{}).value||'');
+  set('rev-solicit', (document.getElementById('force-solicit')||{}).value||'');
+  set('rev-aprov',   aprov);
+  set('rev-tag',     tag);
+  set('rev-sistema', sist);
+  set('rev-sistema', equip+' / '+(document.getElementById('force-sistema')||{}).value||'');
+  set('rev-motivo',  '"'+motivo+'"');
+
+  navTo('scr-force-review');
+}
+
+function submitForce() {
+  var now = new Date();
+  var ts  = String(now.getDate()).padStart(2,'0')+'/'+String(now.getMonth()+1).padStart(2,'0')+'/'+now.getFullYear()+
+            ' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+
+  var f = {
+    id:          'FC-'+Date.now(),
+    data:        (document.getElementById('force-data')||{}).value||'',
+    solicitante: (document.getElementById('force-solicit')||{}).value||'',
+    aprovador:   (document.getElementById('force-aprov-sel')||{}).value||'',
+    tag:         (document.getElementById('force-tag')||{}).value||'',
+    equipamento: (document.getElementById('force-equip')||{}).value||'',
+    processo:    (document.getElementById('force-sistema')||{}).value||'',
+    sistema:     (document.getElementById('force-equip')||{}).value||' / '+((document.getElementById('force-sistema')||{}).value||''),
+    motivo:      (document.getElementById('force-motivo')||{}).value||'',
+    status:      'aguardando',
+    audit: [
+      { acao:'Solicitado', por:(document.getElementById('force-solicit')||{}).value||'', ts:ts }
+    ]
+  };
+
+  var forces = loadForces();
+  forces.unshift(f);
+  saveForces(forces);
+
+  toast('Solicitação enviada para aprovação!');
+  navTo('scr-force');
+  renderForceList();
+}
+
+function openForceDetail(id) {
+  var forces = loadForces();
+  var f = forces.filter(function(x){ return x.id===id; })[0];
+  if(!f) return;
+  FORCE_CURRENT = f;
+
+  // Status bar
+  var sb = document.getElementById('detail-status-bar');
+  if(sb) {
+    var colors = { aguardando:'#FFF8E1', aprovado:'#E8F5E9', rejeitado:'#FFEBEE', encerrado:'#F5F5F5' };
+    var tc     = { aguardando:'#F59E0B', aprovado:'#43A047', rejeitado:'#E53935', encerrado:'#9E9E9E' };
+    var labels = { aguardando:'⏳ Aguardando Aprovação', aprovado:'✅ Aprovado', rejeitado:'❌ Rejeitado', encerrado:'🛑 Encerrado' };
+    sb.style.background = colors[f.status]||'#f5f5f5';
+    sb.style.color = tc[f.status]||'#666';
+    sb.textContent = labels[f.status]||f.status;
+  }
+
+  var set = function(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; };
+  set('detail-tag',     f.tag);
+  set('detail-sistema', f.sistema);
+  set('detail-valor',   f.tipoValor+': '+f.valor);
+  set('detail-solicit', f.solicitante);
+  set('detail-aprov',   f.aprovador);
+  set('detail-motivo',  f.motivo);
+
+  // Audit trail
+  var ac = document.getElementById('detail-audit');
+  if(ac && f.audit) {
+    var dotColor = { 'Solicitado':'', 'Aprovado':'grn', 'Rejeitado':'red', 'Encerrado':'' };
+    ac.innerHTML = f.audit.map(function(a){
+      return '<div class="force-audit-item">'+
+        '<div class="force-audit-dot '+( dotColor[a.acao]||'' )+'"></div>'+
+        '<div class="force-audit-info">'+
+          '<div class="force-audit-txt">'+a.acao+(a.por?' por <strong>'+a.por+'</strong>':'')+'</div>'+
+          '<div class="force-audit-time">'+a.ts+'</div>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+  }
+
+  // Comment card
+  var cc = document.getElementById('detail-comment-card');
+  var cv = document.getElementById('detail-comment');
+  if(cc && cv && f.comentario) {
+    cv.textContent = f.comentario;
+    cc.style.display = 'block';
+  } else if(cc) { cc.style.display = 'none'; }
+
+  // Action buttons
+  var btnAprov = document.getElementById('detail-aprov-btn-wrap');
+  var btnEnc   = document.getElementById('detail-enc-btn-wrap');
+  if(btnAprov) btnAprov.style.display = f.status==='aguardando' ? 'block' : 'none';
+  if(btnEnc)   btnEnc.style.display   = f.status==='aprovado'   ? 'block' : 'none';
+
+  navTo('scr-force-detail');
+}
+
+function openAprovacao() {
+  if(!FORCE_CURRENT) return;
+  var f = FORCE_CURRENT;
+  var set = function(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; };
+  set('aprov-solicit', f.solicitante);
+  set('aprov-tag',     f.tag);
+  set('aprov-sistema', f.sistema);
+  set('aprov-valor',   f.tipoValor+': '+f.valor);
+  set('aprov-motivo',  f.motivo);
+  set('aprov-data',    f.data);
+  var comm = document.getElementById('aprov-comment');
+  if(comm) comm.value = '';
+  navTo('scr-force-aprov');
+}
+
+function decideForce(decisao) {
+  if(!FORCE_CURRENT) return;
+  var comm = (document.getElementById('aprov-comment')||{}).value||'';
+  if(decisao==='rejeitado' && !comm.trim()) {
+    toast('Comentário obrigatório ao rejeitar');
+    return;
+  }
+
+  var now = new Date();
+  var ts  = String(now.getDate()).padStart(2,'0')+'/'+String(now.getMonth()+1).padStart(2,'0')+'/'+now.getFullYear()+
+            ' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+
+  var forces = loadForces();
+  var idx    = forces.findIndex ? forces.findIndex(function(x){return x.id===FORCE_CURRENT.id;}) :
+               (function(){ for(var i=0;i<forces.length;i++){if(forces[i].id===FORCE_CURRENT.id)return i;} return -1; })();
+
+  if(idx === -1) return;
+
+  forces[idx].status     = decisao;
+  forces[idx].comentario = comm;
+  forces[idx].audit.push({
+    acao: decisao==='aprovado'?'Aprovado':'Rejeitado',
+    por:  forces[idx].aprovador,
+    ts:   ts
+  });
+
+  saveForces(forces);
+  FORCE_CURRENT = forces[idx];
+
+  toast(decisao==='aprovado' ? '✅ Force aprovado!' : '❌ Force rejeitado!');
+  openForceDetail(FORCE_CURRENT.id);
+}
+
+function encerrarForce() {
+  if(!FORCE_CURRENT || FORCE_CURRENT.status!=='aprovado') return;
+  var now = new Date();
+  var ts  = String(now.getDate()).padStart(2,'0')+'/'+String(now.getMonth()+1).padStart(2,'0')+'/'+now.getFullYear()+
+            ' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+
+  var forces = loadForces();
+  var idx    = (function(){ for(var i=0;i<forces.length;i++){if(forces[i].id===FORCE_CURRENT.id)return i;} return -1; })();
+  if(idx===-1) return;
+
+  forces[idx].status = 'encerrado';
+  forces[idx].audit.push({ acao:'Encerrado', por:forces[idx].solicitante, ts:ts });
+  saveForces(forces);
+  FORCE_CURRENT = forces[idx];
+  toast('🛑 Force encerrado');
+  openForceDetail(FORCE_CURRENT.id);
+}
+
+// ══════════════════════════════════════════════════
+// FORCE: Firebase sync — puxa solicitações externas
+// ══════════════════════════════════════════════════
+function forceSyncFromFirebase() {
+  if(!FB_URL) return;
+  fetch(FB_URL + '/force_solicits.json')
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      if(!data) return;
+      var local = loadForces();
+      var localIds = {};
+      local.forEach(function(f){ localIds[f.id] = true; });
+
+      var changed = false;
+      Object.keys(data).forEach(function(key) {
+        var remote = data[key];
+        if(!remote || !remote.id) return;
+
+        var existing = local.filter(function(f){ return f.id === remote.id; })[0];
+        if(!existing) {
+          // Nova solicitação externa — adiciona ao app
+          local.unshift(remote);
+          changed = true;
+          toast('🧲 Nova solicitação de force: ' + remote.tag);
+        } else {
+          // Atualiza status se mudou remotamente
+          var idx = local.indexOf(existing);
+          if(remote.status !== existing.status) {
+            local[idx] = remote;
+            changed = true;
+          }
+        }
+      });
+
+      if(changed) {
+        saveForces(local);
+        try{ renderForceList(); }catch(e){}
+      }
+    })
+    .catch(function(e){ console.warn('Force sync error:', e); });
+}
+
+// Sync quando app carrega
+setTimeout(forceSyncFromFirebase, 2000);
+// Sync a cada 60s
+setInterval(forceSyncFromFirebase, 60000);
+
+// Após aprovar/rejeitar/encerrar, salva também no Firebase
+function forceSaveToFirebase(forceObj) {
+  if(!FB_URL) return;
+  fetch(FB_URL + '/force_solicits/' + forceObj.id + '.json', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(forceObj)
+  }).catch(function(e){ console.warn('Force save error:', e); });
+}
+
+// ── Botão: Gerar Link Externo ──────────────────────
+function generateForceLink() {
+  var baseUrl = window.location.href.replace('index.html','').replace(/\/$/, '');
+  var link = baseUrl + '/force-form.html';
+  if(navigator.clipboard) {
+    navigator.clipboard.writeText(link).then(function(){
+      toast('🔗 Link copiado! Envie ao solicitante pelo WhatsApp.');
+    });
+  } else {
+    window.prompt('Link do formulário externo:', link);
+  }
+}
+
+// ── Salva no Firebase ao decidir ──────────────────
+var _origDecideForce = decideForce;
+decideForce = function(decisao) {
+  _origDecideForce(decisao);
+  // Save updated force to Firebase
+  if(FORCE_CURRENT) {
+    var forces = loadForces();
+    var updated = forces.filter(function(f){ return f.id === FORCE_CURRENT.id; })[0];
+    if(updated) forceSaveToFirebase(updated);
+  }
+};
+
+var _origEncerrarForce = encerrarForce;
+encerrarForce = function() {
+  _origEncerrarForce();
+  if(FORCE_CURRENT) {
+    var forces = loadForces();
+    var updated = forces.filter(function(f){ return f.id === FORCE_CURRENT.id; })[0];
+    if(updated) forceSaveToFirebase(updated);
+  }
+};
+
+// Render list when navigating to scr-force - called from main navTo
+
 </script>
 </body>
 </html>
