@@ -161,24 +161,29 @@ function getProto(){
   return 'FC-'+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'-'+String(Date.now()).slice(-4);
 }
 
+function getBaseUrl(){
+  // URL base do site no GitHub Pages
+  var url = window.location.href;
+  return url.substring(0, url.lastIndexOf('/'));
+}
+
 function buildWppMsg(f, proto){
+  var approvalLink = getBaseUrl() + '/force-webhook.html?id=' + proto;
   return encodeURIComponent(
-    '🧲 *SOLICITAÇÃO DE FORCE – CLP*\n' +
-    '━━━━━━━━━━━━━━━━━━━━\n' +
-    '📋 *Protocolo:* ' + proto + '\n' +
-    '📅 *Data/Hora:* ' + f.data + '\n\n' +
-    '👤 *Solicitante:* ' + f.solicitante + '\n' +
-    '🪪 *Matrícula:* ' + f.matricula + '\n\n' +
-    '🏷 *Tag/Condição:* `' + f.tag + '`\n' +
-    '⚙️ *Equipamento:* ' + f.equipamento + '\n' +
-    '🏭 *Processo:* ' + f.processo + '\n\n' +
-    '📝 *Motivo:*\n_' + f.motivo + '_\n\n' +
-    '━━━━━━━━━━━━━━━━━━━━\n' +
-    '⚖️ *DECISÃO DO APROVADOR:*\n' +
-    'Responda este chat com:\n' +
-    '✅ *APROVAR ' + proto + '* – para aprovar\n' +
-    '❌ *REJEITAR ' + proto + '* – para rejeitar\n\n' +
-    '_CSN Cimentos – Automação e Manutenção_'
+    '\u{1F9F2} *SOLICITA\u00C7\u00C3O DE FORCE \u2013 CLP*\n' +
+    '\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n' +
+    '\uD83D\uDCCB *Protocolo:* ' + proto + '\n' +
+    '\uD83D\uDCC5 *Data/Hora:* ' + f.data + '\n\n' +
+    '\uD83D\uDC64 *Solicitante:* ' + f.solicitante + '\n' +
+    '\uD83E\uDEAA *Matr\u00EDcula:* ' + f.matricula + '\n\n' +
+    '\u2699\uFE0F *Equipamento:* ' + f.equipamento + '\n' +
+    '\uD83C\uDFED *Processo:* ' + f.processo + '\n' +
+    '\uD83C\uDFF7 *Tag/Condi\u00E7\u00E3o:* ' + f.tag + '\n\n' +
+    '\uD83D\uDCDD *Motivo:*\n_' + f.motivo + '_\n\n' +
+    '\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n' +
+    '\u2696\uFE0F *CLIQUE PARA APROVAR OU REJEITAR:*\n' +
+    approvalLink + '\n\n' +
+    '_CSN Cimentos \u2013 Automa\u00E7\u00E3o e Manuten\u00E7\u00E3o_'
   );
 }
 
