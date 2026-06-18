@@ -80,15 +80,14 @@ textarea:focus{border-color:#7C3AED;}
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js" onload="emailjs.init('E8Et2-vUNCCW9VzlX');console.log('EmailJS carregado e iniciado!');" onerror="console.error('Falha ao carregar EmailJS SDK');"></script>
 <script>
-emailjs.init("E8Et2-vUNCCW9VzlX");
 var FB_URL = 'https://csn-automacao-default-rtdb.firebaseio.com';
 // E-mails para notificação (serão enviados via EmailJS)
 var NOTIFY_EMAILS = ['ronan.moreira@csn.com.br','rodrigo.lima@csn.com.br'];
 
 // EmailJS config (gratuito até 200 emails/mês)
-var EMAILJS_SVC  = 'service_swmu9d3';
+var EMAILJS_SVC  = 'service_pda08nk';
 var EMAILJS_TMPL = 'template_8jnpd06';
 var EMAILJS_KEY  = 'E8Et2-vUNCCW9VzlX';
 
@@ -175,7 +174,11 @@ function showDone(decisao, comm){
     document.getElementById('done-icon').textContent='❌';
     document.getElementById('done-title').textContent='Force REJEITADO';
   }
-  if(comm) document.getElementById('done-sub').textContent='Comentário: '+comm;
+  var subEl = document.getElementById('done-sub');
+  if(subEl){
+    subEl.innerHTML = (comm ? 'Comentário: '+comm+'<br>' : '')+
+      '<span style="color:#43A047;font-size:.8rem;">📧 Notificação enviada para a equipe</span>';
+  }
 }
 
 function showErr(){
@@ -185,36 +188,58 @@ function showErr(){
 
 // ── Envio de e-mail via EmailJS ───────────────────
 function sendEmailNotification(decisao, comm, ts){
-  if(!forceData) return;
-  try{
-    var subject = decisao==='aprovado'
-      ? '✅ Force APROVADO – '+forceData.tag+' ('+proto+')'
-      : '❌ Force REJEITADO – '+forceData.tag+' ('+proto+')';
-    var body =
-      'Decisão: '+(decisao==='aprovado'?'APROVADO':'REJEITADO')+'\n'+
-      'Protocolo: '+proto+'\n'+
-      'Data decisão: '+ts+'\n'+
-      'Aprovador: '+forceData.aprovador+'\n\n'+
-      'Solicitante: '+forceData.solicitante+' (Mat: '+(forceData.matricula||'—')+')\n'+
-      'Equipamento: '+(forceData.equipamento||'—')+'\n'+
-      'Processo: '+(forceData.processo||'—')+'\n'+
-      'Tag: '+forceData.tag+'\n'+
-      'Motivo: '+forceData.motivo+'\n'+
-      (comm?'Comentário aprovador: '+comm+'\n':'');
+  if(!forceData){ console.warn('sendEmail: forceData nulo'); return; }
 
-    NOTIFY_EMAILS.forEach(function(email){
-      emailjs.send(EMAILJS_SVC, EMAILJS_TMPL, {
-        to_email:    email,
-        subject:     subject,
-        message:     body,
-        proto:       proto,
-        decisao:     decisao.toUpperCase(),
-        tag:         forceData.tag,
-        aprovador:   forceData.aprovador,
-        solicitante: forceData.solicitante
-      }).catch(function(){});
+  var decisaoTxt = decisao==='aprovado' ? 'APROVADO' : 'REJEITADO';
+  var emoji      = decisao==='aprovado' ? '✅' : '❌';
+  var subject    = emoji+' Force '+decisaoTxt+' – '+forceData.tag+' ('+proto+')';
+  var message    =
+    'Decisão: '+decisaoTxt+'\n'+
+    'Protocolo: '+proto+'\n'+
+    'Data/Hora: '+ts+'\n'+
+    'Aprovador: '+(forceData.aprovador||'—')+'\n\n'+
+    'Solicitante: '+(forceData.solicitante||'—')+' (Mat: '+(forceData.matricula||'—')+')\n'+
+    'Equipamento: '+(forceData.equipamento||'—')+'\n'+
+    'Processo: '+(forceData.processo||'—')+'\n'+
+    'Tag: '+(forceData.tag||'—')+'\n'+
+    'Motivo: '+(forceData.motivo||'—')+
+    (comm ? '\nComentário: '+comm : '');
+
+  var subEl = document.getElementById('done-sub');
+
+  // Verifica se SDK está disponível
+  if(typeof emailjs === 'undefined'){
+    console.error('EmailJS SDK não carregado!');
+    if(subEl) subEl.innerHTML += '<br><span style="color:#E53935;font-size:.75rem;">⚠️ SDK não carregado - verifique conexão</span>';
+    return;
+  }
+
+  var total   = NOTIFY_EMAILS.length;
+  var success = 0;
+  var errors  = [];
+
+  NOTIFY_EMAILS.forEach(function(email, idx){
+    console.log('Enviando email para:', email);
+    emailjs.send(
+      EMAILJS_SVC,
+      EMAILJS_TMPL,
+      { to_email: email, subject: subject, message: message },
+      EMAILJS_KEY
+    )
+    .then(function(resp){
+      success++;
+      console.log('✅ Email '+idx+' enviado para '+email+' status:'+resp.status);
+      if(subEl) subEl.innerHTML =
+        '<span style="color:#43A047;font-size:.8rem;">📧 Email enviado para '+success+'/'+total+' destinatário(s)</span>';
+    })
+    .catch(function(err){
+      var msg = typeof err === 'object' ? JSON.stringify(err) : String(err);
+      errors.push(email+': '+msg);
+      console.error('❌ Erro email para '+email+':', msg);
+      if(subEl) subEl.innerHTML +=
+        '<br><span style="color:#E53935;font-size:.72rem;">⚠️ Falha: '+msg+'</span>';
     });
-  }catch(e){}
+  });
 }
 
 loadForce();
