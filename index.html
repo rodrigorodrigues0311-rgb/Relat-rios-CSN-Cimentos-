@@ -1540,8 +1540,8 @@ CREATE POLICY "Acesso publico" ON relatorios FOR ALL USING (true);</pre>
       </div>
       <div class="force-rev-row"><div class="force-rev-lbl">Solicitante</div><div class="force-rev-val" id="aprov-solicit">—</div></div>
       <div class="force-rev-row"><div class="force-rev-lbl">Tag</div><div class="force-rev-val" id="aprov-tag" style="font-family:monospace;color:var(--blue);">—</div></div>
-      <div class="force-rev-row"><div class="force-rev-lbl">Sistema</div><div class="force-rev-val" id="aprov-sistema">—</div></div>
-      <div class="force-rev-row"><div class="force-rev-lbl">Valor Force</div><div class="force-rev-val" id="aprov-valor">—</div></div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Equipamento</div><div class="force-rev-val" id="aprov-sistema">—</div></div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Processo</div><div class="force-rev-val" id="aprov-valor">—</div></div>
       <div class="force-rev-row" style="flex-direction:column;gap:4px;">
         <div class="force-rev-lbl">Motivo</div>
         <div class="force-rev-val" id="aprov-motivo" style="font-style:italic;">—</div>
@@ -1623,7 +1623,9 @@ CREATE POLICY "Acesso publico" ON relatorios FOR ALL USING (true);</pre>
     <div id="detail-enc-btn-wrap" style="display:none;margin-bottom:12px;">
       <button onclick="encerrarForce()" style="width:100%;padding:14px;background:#607D8B;border:none;border-radius:14px;color:#fff;font-size:.9rem;font-weight:700;cursor:pointer;">🛑 Encerrar Force (Retirada Confirmada)</button>
     </div>
-  
+  </div>
+</div>
+
 <!-- ══ TELA: CONCLUSÃO TÉCNICA DO FORCE ══ -->
 <div class="screen" id="scr-force-tecnico">
   <div class="topbar">
@@ -1685,8 +1687,6 @@ CREATE POLICY "Acesso publico" ON relatorios FOR ALL USING (true);</pre>
       ✅ Concluir Solicitação
     </button>
   </div>
-</div>
-</div>
 </div>
 </div><!-- #app -->
 <div id="toast"></div>
@@ -3865,8 +3865,7 @@ function openForceReview() {
   set('rev-solicit', (document.getElementById('force-solicit')||{}).value||'');
   set('rev-aprov',   aprov);
   set('rev-tag',     tag);
-  set('rev-sistema', sist);
-  set('rev-sistema', equip+' / '+(document.getElementById('force-sistema')||{}).value||'');
+  set('rev-sistema', equip+' / '+sist);
   set('rev-motivo',  '"'+motivo+'"');
 
   navTo('scr-force-review');
@@ -3929,8 +3928,8 @@ function openForceDetail(id) {
 
   var set = function(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; };
   set('detail-tag',     f.tag);
-  set('detail-sistema', f.sistema);
-  set('detail-valor',   f.tipoValor+': '+f.valor);
+  set('detail-sistema', f.equipamento || '—');
+  set('detail-valor',   f.processo || '—');
   set('detail-solicit', f.solicitante);
   set('detail-aprov',   f.aprovador);
   set('detail-motivo',  f.motivo);
@@ -3992,8 +3991,8 @@ function openAprovacao() {
   var set = function(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; };
   set('aprov-solicit', f.solicitante);
   set('aprov-tag',     f.tag);
-  set('aprov-sistema', f.sistema);
-  set('aprov-valor',   f.tipoValor+': '+f.valor);
+  set('aprov-sistema', f.equipamento || '—');
+  set('aprov-valor',   f.processo || '—');
   set('aprov-motivo',  f.motivo);
   set('aprov-data',    f.data);
   var comm = document.getElementById('aprov-comment');
