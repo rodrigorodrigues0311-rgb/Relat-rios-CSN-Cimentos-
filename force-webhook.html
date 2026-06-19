@@ -122,7 +122,7 @@ function loadForce(){
       setText('d-motivo', data.motivo);
 
       if(data.status !== 'aguardando'){
-        showDone(data.status, data.comentario);
+        showDone(data.status==='aprovado_pendente'?'aprovado':data.status, data.comentario);
       }
     })
     .catch(showErr);
@@ -141,10 +141,16 @@ function decide(decisao){
   document.getElementById('action-area').style.opacity='.5';
 
   var ts = getTs();
-  forceData.status     = decisao;
+  // Aprovado externamente fica como 'aprovado_pendente' até o tecnico
+  // preencher o registro tecnico no app (Tag PLC, variavel, criticidade etc.)
+  forceData.status     = decisao==='aprovado' ? 'aprovado_pendente' : 'rejeitado';
   forceData.comentario = comm;
   forceData.audit = forceData.audit||[];
-  forceData.audit.push({ acao: decisao==='aprovado'?'Aprovado':'Rejeitado', por:forceData.aprovador, ts:ts });
+  forceData.audit.push({
+    acao: decisao==='aprovado' ? 'Aprovado (aguardando registro tecnico)' : 'Rejeitado',
+    por: forceData.aprovador,
+    ts: ts
+  });
 
   fetch(FB_URL+'/force_solicits/'+proto+'.json',{
     method:'PUT',
@@ -165,10 +171,11 @@ function showDone(decisao, comm){
   document.getElementById('action-area').style.display='none';
   document.getElementById('done-area').style.display='block';
   var sb = document.getElementById('status-bar');
-  if(decisao==='aprovado'){
+  if(decisao==='aprovado' || decisao==='aprovado_pendente'){
     sb.className='status-bar status-ok'; sb.textContent='✅ APROVADO';
     document.getElementById('done-icon').textContent='✅';
     document.getElementById('done-title').textContent='Force APROVADO!';
+    document.getElementById('done-sub').textContent='O técnico de automação dará continuidade ao registro no app.';
   } else {
     sb.className='status-bar status-no'; sb.textContent='❌ REJEITADO';
     document.getElementById('done-icon').textContent='❌';

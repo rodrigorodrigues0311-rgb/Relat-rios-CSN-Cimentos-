@@ -702,6 +702,7 @@ body.dark [style*="color:var(--g500)"]{color:#94a3b8 !important;}
 .force-badge.aprov{background:#E8F5E9;color:#43A047;}
 .force-badge.rejeit{background:#FFEBEE;color:#E53935;}
 .force-badge.enc{background:#F5F5F5;color:#9E9E9E;}
+.force-badge.pend{background:#E3F2FD;color:#1565C0;}
 
 /* Force form */
 .force-sec{margin-bottom:14px;}
@@ -1395,6 +1396,7 @@ CREATE POLICY "Acesso publico" ON relatorios FOR ALL USING (true);</pre>
     <div style="display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;">
       <button class="force-filter-btn act" onclick="filterForce('all')" id="ff-all">Todos</button>
       <button class="force-filter-btn" onclick="filterForce('aguardando')" id="ff-wait">⏳ Aguardando</button>
+      <button class="force-filter-btn" onclick="filterForce('aprovado_pendente')" id="ff-pend">📝 Registro Pendente</button>
       <button class="force-filter-btn" onclick="filterForce('aprovado')" id="ff-aprov">✅ Aprovado</button>
       <button class="force-filter-btn" onclick="filterForce('rejeitado')" id="ff-rejeit">❌ Rejeitado</button>
       <button class="force-filter-btn" onclick="filterForce('encerrado')" id="ff-enc">🛑 Encerrado</button>
@@ -1407,8 +1409,6 @@ CREATE POLICY "Acesso publico" ON relatorios FOR ALL USING (true);</pre>
       </div>
     </div>
   </div>
-  <!-- FAB -->
-  <button onclick="openForceNew()" style="position:fixed;bottom:90px;right:20px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1565C0,#1e3a5f);border:none;color:#fff;font-size:1.4rem;cursor:pointer;box-shadow:0 4px 16px rgba(21,101,192,.5);z-index:50;display:flex;align-items:center;justify-content:center;" id="force-fab">+</button>
   <div class="bottom-nav"><button class="bn-item" onclick="navTo('scr-dash')"><span class="bn-icon">&#127968;</span><span class="bn-lbl">Inicio</span></button><button class="bn-item" onclick="navTo('scr-history')"><span class="bn-icon">&#128203;</span><span class="bn-lbl">Relatorios</span></button><button class="bn-item" onclick="startReport()" style="position:relative"><span class="bn-fab">&#43;</span><span class="bn-icon" style="margin-top:18px;opacity:0">.</span><span class="bn-lbl">Novo</span></button><button class="bn-item act" onclick="navTo('scr-force')"><span class="bn-icon">&#129392;</span><span class="bn-lbl">Force</span></button><button class="bn-item" onclick="navTo('scr-profile')"><span class="bn-icon">&#128100;</span><span class="bn-lbl">Perfil</span></button></div>
 </div>
 
@@ -1452,26 +1452,26 @@ CREATE POLICY "Acesso publico" ON relatorios FOR ALL USING (true);</pre>
       </div>
       <div class="force-sec">
         <div class="force-sec-label">⚙️ Equipamento</div>
-        <select class="fi" id="force-equip">
-          <option value="">Selecionar equipamento...</option>
-          <option>⚙️ Moinho 1</option>
-          <option>⚙️ Moinho 2</option>
-          <option>🏭 Ensacadeira e Paletizadora 1</option>
-          <option>🏭 Ensacadeira e Paletizadora 2</option>
-          <option>🚜 Retomadora</option>
-          <option>🖥️ Icon</option>
-          <option>🚿 Lavador de Pneus</option>
-        </select>
+        <input type="text" class="fi" id="force-equip" placeholder="Digite o nome do equipamento...">
       </div>
       <div class="force-sec">
         <div class="force-sec-label">🏭 Processo</div>
-        <select class="fi" id="force-sistema">
+        <select class="fi" id="force-sistema" onchange="toggleProcessoOutroApp()">
           <option value="">Selecionar processo...</option>
+          <option>⚙️ Moinho 1</option>
+          <option>⚙️ Moinho 2</option>
           <option>🏭 Silos</option>
+          <option>🏭 Ensacadeira e Paletizadora 1</option>
+          <option>🏭 Ensacadeira e Paletizadora 2</option>
+          <option>🚜 Retomadora</option>
           <option>🚛 Transporte Ferroviário, Rodoviário e Matéria Prima</option>
           <option>🔥 Extração de Clinquer</option>
+          <option>🖥️ Icon</option>
           <option>🏭 Desga</option>
+          <option>🚿 Lavador de Pneus</option>
+          <option value="outro">Outro...</option>
         </select>
+        <input type="text" class="fi" id="force-sistema-outro" placeholder="Digite o processo..." style="display:none;margin-top:8px;">
       </div>
       <div class="force-sec">
         <div class="force-sec-label">📝 Motivo do Force</div>
@@ -1600,15 +1600,93 @@ CREATE POLICY "Acesso publico" ON relatorios FOR ALL USING (true);</pre>
 
     <div style="height:16px;"></div>
 
+    <!-- Dados do registro técnico (se já preenchido) -->
+    <div class="form-card" id="detail-tec-card" style="display:none;margin-bottom:12px;border-top:4px solid #43A047;">
+      <div style="font-size:.78rem;font-weight:700;color:#43A047;margin-bottom:10px;">🔧 REGISTRO TÉCNICO DO FORCE</div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Responsável</div><div class="force-rev-val" id="detail-tec-resp">—</div></div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Tag PLC</div><div class="force-rev-val" id="detail-tec-tagplc" style="font-family:monospace;color:var(--blue);">—</div></div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Variável</div><div class="force-rev-val" id="detail-tec-varplc">—</div></div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Tipo</div><div class="force-rev-val" id="detail-tec-tipo">—</div></div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Valor</div><div class="force-rev-val" id="detail-tec-valor">—</div></div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Criticidade</div><div class="force-rev-val" id="detail-tec-critic">—</div></div>
+    </div>
+
     <!-- Botão aprovar (se pendente e usuário é aprovador) -->
     <div id="detail-aprov-btn-wrap" style="display:none;margin-bottom:12px;">
       <button onclick="openAprovacao()" style="width:100%;padding:14px;background:linear-gradient(135deg,#1565C0,#1e3a5f);border:none;border-radius:14px;color:#fff;font-size:.9rem;font-weight:700;cursor:pointer;">⚖️ Aprovar / Rejeitar</button>
     </div>
-    <!-- Botão encerrar (se aprovado) -->
+    <!-- Botão preencher registro técnico (se aprovado_pendente) -->
+    <div id="detail-tec-btn-wrap" style="display:none;margin-bottom:12px;">
+      <button onclick="openForceTecnico()" style="width:100%;padding:14px;background:linear-gradient(135deg,#43A047,#2E7D32);border:none;border-radius:14px;color:#fff;font-size:.9rem;font-weight:700;cursor:pointer;">📝 Preencher Registro Técnico</button>
+    </div>
+    <!-- Botão encerrar (se aprovado e registrado) -->
     <div id="detail-enc-btn-wrap" style="display:none;margin-bottom:12px;">
-      <button onclick="encerrarForce()" style="width:100%;padding:14px;background:#607D8B;border:none;border-radius:14px;color:#fff;font-size:.9rem;font-weight:700;cursor:pointer;">🛑 Encerrar Force</button>
+      <button onclick="encerrarForce()" style="width:100%;padding:14px;background:#607D8B;border:none;border-radius:14px;color:#fff;font-size:.9rem;font-weight:700;cursor:pointer;">🛑 Encerrar Force (Retirada Confirmada)</button>
+    </div>
+  
+<!-- ══ TELA: CONCLUSÃO TÉCNICA DO FORCE ══ -->
+<div class="screen" id="scr-force-tecnico">
+  <div class="topbar">
+    <div class="tb-row">
+      <button class="tb-back" onclick="navTo('scr-force-detail')">←</button>
+      <div class="tb-title">Registro Técnico do Force</div>
     </div>
   </div>
+  <div class="scroll" style="padding:16px;">
+    <div style="background:#E8F5E9;border:1px solid #43A047;border-radius:12px;padding:12px 14px;margin-bottom:14px;display:flex;gap:10px;align-items:flex-start;">
+      <span style="font-size:1.1rem;">✅</span>
+      <div style="font-size:.8rem;color:#1B5E20;line-height:1.5;">
+        <strong>Force aprovado.</strong> Preencha os dados técnicos da execução para concluir o registro.
+      </div>
+    </div>
+    <div class="form-card">
+      <div class="force-sec">
+        <div class="force-sec-label">👷 Responsável por Fazer o Force</div>
+        <input type="text" class="fi" id="tec-resp" placeholder="Nome do técnico executor">
+      </div>
+      <div class="force-sec">
+        <div class="force-sec-label">🏷 Tag PLC</div>
+        <input type="text" class="fi" id="tec-tag-plc" placeholder="Ex: MTR_R4_RUN" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
+      </div>
+      <div class="force-sec">
+        <div class="force-sec-label">🔢 Variável do PLC</div>
+        <input type="text" class="fi" id="tec-var-plc" placeholder="Ex: DB100.DBX0.0">
+      </div>
+      <div class="force-sec">
+        <div class="force-sec-label">⚙️ Tipo do Force</div>
+        <select class="fi" id="tec-tipo">
+          <option value="">Selecionar...</option>
+          <option>PLC</option>
+          <option>Supervisório</option>
+        </select>
+      </div>
+      <div class="force-sec">
+        <div class="force-sec-label">⚡ Valor da Variável</div>
+        <select class="fi" id="tec-valor-tipo" onchange="toggleTecValorAnalogico()">
+          <option value="digital0">Digital — Forçado em 0</option>
+          <option value="digital1">Digital — Forçado em 1</option>
+          <option value="analogico">Valor Analógico Fixo</option>
+        </select>
+        <input type="text" class="fi" id="tec-valor-analog" placeholder="Ex: 125.5" style="display:none;margin-top:8px;">
+      </div>
+      <div class="force-sec">
+        <div class="force-sec-label">🚨 Criticidade</div>
+        <select class="fi" id="tec-critic">
+          <option value="">Selecionar...</option>
+          <option value="0">0 — Baixa</option>
+          <option value="1">1 — Alta</option>
+        </select>
+      </div>
+    </div>
+    <div style="height:16px;"></div>
+  </div>
+  <div style="padding:12px 16px 28px;background:#fff;border-top:1px solid var(--g200);flex-shrink:0;">
+    <button onclick="concludeForceTecnico()" style="width:100%;padding:14px;background:linear-gradient(135deg,#43A047,#2E7D32);border:none;border-radius:14px;color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;">
+      ✅ Concluir Solicitação
+    </button>
+  </div>
+</div>
+</div>
 </div>
 </div><!-- #app -->
 <div id="toast"></div>
@@ -3653,10 +3731,11 @@ function saveForces(arr) {
 
 function forceStatusBadge(s) {
   var map = {
-    'aguardando': '<span class="force-badge wait">⏳ Aguardando</span>',
-    'aprovado':   '<span class="force-badge aprov">✅ Aprovado</span>',
-    'rejeitado':  '<span class="force-badge rejeit">❌ Rejeitado</span>',
-    'encerrado':  '<span class="force-badge enc">🛑 Encerrado</span>',
+    'aguardando':        '<span class="force-badge wait">⏳ Aguardando</span>',
+    'aprovado_pendente': '<span class="force-badge pend">📝 Aguardando Registro Técnico</span>',
+    'aprovado':           '<span class="force-badge aprov">✅ Aprovado</span>',
+    'rejeitado':          '<span class="force-badge rejeit">❌ Rejeitado</span>',
+    'encerrado':          '<span class="force-badge enc">🛑 Encerrado</span>',
   };
   return map[s] || '<span class="force-badge">'+s+'</span>';
 }
@@ -3697,7 +3776,11 @@ function renderForceList() {
 function filterForce(filter) {
   FORCE_FILTER = filter;
   document.querySelectorAll('.force-filter-btn').forEach(function(b){ b.classList.remove('act'); });
-  var el = document.getElementById('ff-'+(filter==='all'?'all':filter==='aguardando'?'wait':filter==='aprovado'?'aprov':filter==='rejeitado'?'rejeit':'enc'));
+  var idMap = {
+    all:'all', aguardando:'wait', aprovado_pendente:'pend',
+    aprovado:'aprov', rejeitado:'rejeit', encerrado:'enc'
+  };
+  var el = document.getElementById('ff-'+(idMap[filter]||'all'));
   if(el) el.classList.add('act');
   renderForceList();
 }
@@ -3727,6 +3810,19 @@ function openForceNew() {
   setupForceTagAC();
 }
 
+function toggleProcessoOutroApp(){
+  var sel = document.getElementById('force-sistema');
+  var out = document.getElementById('force-sistema-outro');
+  if(!sel || !out) return;
+  if(sel.value === 'outro'){
+    out.style.display = 'block';
+    out.focus();
+  } else {
+    out.style.display = 'none';
+    out.value = '';
+  }
+}
+
 function setupForceTagAC() {
   var inp = document.getElementById('force-tag');
   var sug = document.getElementById('force-tag-sugest');
@@ -3752,7 +3848,8 @@ function selectForceTag(tag) {
 function openForceReview() {
   var tag    = (document.getElementById('force-tag')||{}).value||'';
   var aprov  = (document.getElementById('force-aprov-sel')||{}).value||'';
-  var sist   = (document.getElementById('force-sistema')||{}).value||'';
+  var sistSel = (document.getElementById('force-sistema')||{}).value||'';
+  var sist = sistSel === 'outro' ? ((document.getElementById('force-sistema-outro')||{}).value||'') : sistSel;
   var motivo = (document.getElementById('force-motivo')||{}).value||'';
   var equip  = (document.getElementById('force-equip')||{}).value||'';
 
@@ -3787,8 +3884,16 @@ function submitForce() {
     aprovador:   (document.getElementById('force-aprov-sel')||{}).value||'',
     tag:         (document.getElementById('force-tag')||{}).value||'',
     equipamento: (document.getElementById('force-equip')||{}).value||'',
-    processo:    (document.getElementById('force-sistema')||{}).value||'',
-    sistema:     (document.getElementById('force-equip')||{}).value||' / '+((document.getElementById('force-sistema')||{}).value||''),
+    processo:    (function(){
+      var s=(document.getElementById('force-sistema')||{}).value||'';
+      return s==='outro' ? ((document.getElementById('force-sistema-outro')||{}).value||'') : s;
+    })(),
+    sistema:     (function(){
+      var e=(document.getElementById('force-equip')||{}).value||'';
+      var s=(document.getElementById('force-sistema')||{}).value||'';
+      if(s==='outro') s=(document.getElementById('force-sistema-outro')||{}).value||'';
+      return e+' / '+s;
+    })(),
     motivo:      (document.getElementById('force-motivo')||{}).value||'',
     status:      'aguardando',
     audit: [
@@ -3814,9 +3919,9 @@ function openForceDetail(id) {
   // Status bar
   var sb = document.getElementById('detail-status-bar');
   if(sb) {
-    var colors = { aguardando:'#FFF8E1', aprovado:'#E8F5E9', rejeitado:'#FFEBEE', encerrado:'#F5F5F5' };
-    var tc     = { aguardando:'#F59E0B', aprovado:'#43A047', rejeitado:'#E53935', encerrado:'#9E9E9E' };
-    var labels = { aguardando:'⏳ Aguardando Aprovação', aprovado:'✅ Aprovado', rejeitado:'❌ Rejeitado', encerrado:'🛑 Encerrado' };
+    var colors = { aguardando:'#FFF8E1', aprovado_pendente:'#E3F2FD', aprovado:'#E8F5E9', rejeitado:'#FFEBEE', encerrado:'#F5F5F5' };
+    var tc     = { aguardando:'#F59E0B', aprovado_pendente:'#1565C0', aprovado:'#43A047', rejeitado:'#E53935', encerrado:'#9E9E9E' };
+    var labels = { aguardando:'⏳ Aguardando Aprovação', aprovado_pendente:'📝 Aprovado — Aguardando Registro Técnico', aprovado:'✅ Aprovado e Registrado', rejeitado:'❌ Rejeitado', encerrado:'🛑 Encerrado' };
     sb.style.background = colors[f.status]||'#f5f5f5';
     sb.style.color = tc[f.status]||'#666';
     sb.textContent = labels[f.status]||f.status;
@@ -3855,9 +3960,28 @@ function openForceDetail(id) {
 
   // Action buttons
   var btnAprov = document.getElementById('detail-aprov-btn-wrap');
+  var btnTec   = document.getElementById('detail-tec-btn-wrap');
   var btnEnc   = document.getElementById('detail-enc-btn-wrap');
-  if(btnAprov) btnAprov.style.display = f.status==='aguardando' ? 'block' : 'none';
-  if(btnEnc)   btnEnc.style.display   = f.status==='aprovado'   ? 'block' : 'none';
+  if(btnAprov) btnAprov.style.display = f.status==='aguardando'         ? 'block' : 'none';
+  if(btnTec)   btnTec.style.display   = f.status==='aprovado_pendente'  ? 'block' : 'none';
+  if(btnEnc)   btnEnc.style.display   = f.status==='aprovado'           ? 'block' : 'none';
+
+  // Mostrar dados técnicos se já preenchidos
+  var tecCard = document.getElementById('detail-tec-card');
+  if(tecCard){
+    if(f.tecResponsavel){
+      tecCard.style.display = 'block';
+      var setT=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v||'—';};
+      setT('detail-tec-resp',   f.tecResponsavel);
+      setT('detail-tec-tagplc', f.tecTagPlc);
+      setT('detail-tec-varplc', f.tecVarPlc);
+      setT('detail-tec-tipo',   f.tecTipo);
+      setT('detail-tec-valor',  f.tecValor);
+      setT('detail-tec-critic', f.tecCriticidade==='1' ? '1 — Alta' : f.tecCriticidade==='0' ? '0 — Baixa' : '—');
+    } else {
+      tecCard.style.display = 'none';
+    }
+  }
 
   navTo('scr-force-detail');
 }
@@ -3895,10 +4019,10 @@ function decideForce(decisao) {
 
   if(idx === -1) return;
 
-  forces[idx].status     = decisao;
+  forces[idx].status     = decisao==='aprovado' ? 'aprovado_pendente' : 'rejeitado';
   forces[idx].comentario = comm;
   forces[idx].audit.push({
-    acao: decisao==='aprovado'?'Aprovado':'Rejeitado',
+    acao: decisao==='aprovado'?'Aprovado (aguardando registro técnico)':'Rejeitado',
     por:  forces[idx].aprovador,
     ts:   ts
   });
@@ -3911,7 +4035,7 @@ function decideForce(decisao) {
 }
 
 function encerrarForce() {
-  if(!FORCE_CURRENT || FORCE_CURRENT.status!=='aprovado') return;
+  if(!FORCE_CURRENT || FORCE_CURRENT.status!=='aprovado') { toast('Conclua o registro técnico primeiro'); return; }
   var now = new Date();
   var ts  = String(now.getDate()).padStart(2,'0')+'/'+String(now.getMonth()+1).padStart(2,'0')+'/'+now.getFullYear()+
             ' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
@@ -4019,6 +4143,81 @@ encerrarForce = function() {
     if(updated) forceSaveToFirebase(updated);
   }
 };
+
+
+// ── Toggle valor analógico no formulário técnico ──
+function toggleTecValorAnalogico(){
+  var sel = document.getElementById('tec-valor-tipo');
+  var inp = document.getElementById('tec-valor-analog');
+  if(!sel || !inp) return;
+  if(sel.value === 'analogico'){
+    inp.style.display = 'block';
+    inp.focus();
+  } else {
+    inp.style.display = 'none';
+    inp.value = '';
+  }
+}
+
+// ── Abre tela de conclusão técnica ────────────────
+function openForceTecnico(){
+  if(!FORCE_CURRENT) return;
+  ['tec-resp','tec-tag-plc','tec-var-plc','tec-valor-analog'].forEach(function(id){
+    var e=document.getElementById(id); if(e) e.value='';
+  });
+  ['tec-tipo','tec-valor-tipo','tec-critic'].forEach(function(id){
+    var e=document.getElementById(id); if(e) e.selectedIndex=0;
+  });
+  document.getElementById('tec-tag-plc').value = FORCE_CURRENT.tag || '';
+  navTo('scr-force-tecnico');
+}
+
+// ── Conclui o registro técnico — só agora vira "aprovado" definitivo ──
+function concludeForceTecnico(){
+  var resp   = (document.getElementById('tec-resp')||{}).value.trim();
+  var tagPlc = (document.getElementById('tec-tag-plc')||{}).value.trim();
+  var varPlc = (document.getElementById('tec-var-plc')||{}).value.trim();
+  var tipo   = (document.getElementById('tec-tipo')||{}).value;
+  var valTipo= (document.getElementById('tec-valor-tipo')||{}).value;
+  var valAnl = (document.getElementById('tec-valor-analog')||{}).value.trim();
+  var critic = (document.getElementById('tec-critic')||{}).value;
+
+  if(!resp)   { toast('Informe o responsável pelo force'); return; }
+  if(!tagPlc) { toast('Informe a Tag PLC'); return; }
+  if(!varPlc) { toast('Informe a variável do PLC'); return; }
+  if(!tipo)   { toast('Selecione o tipo do force'); return; }
+  if(valTipo==='analogico' && !valAnl) { toast('Informe o valor analógico'); return; }
+  if(critic==='') { toast('Selecione a criticidade'); return; }
+
+  var valorFinal = valTipo==='analogico' ? valAnl :
+                    valTipo==='digital1' ? '1 (Forçado)' : '0 (Forçado)';
+
+  if(!FORCE_CURRENT) return;
+
+  var now = new Date();
+  var ts  = String(now.getDate()).padStart(2,'0')+'/'+String(now.getMonth()+1).padStart(2,'0')+'/'+now.getFullYear()+
+            ' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+
+  var forces = loadForces();
+  var idx = (function(){ for(var i=0;i<forces.length;i++){if(forces[i].id===FORCE_CURRENT.id)return i;} return -1; })();
+  if(idx===-1) return;
+
+  forces[idx].tecResponsavel = resp;
+  forces[idx].tecTagPlc      = tagPlc;
+  forces[idx].tecVarPlc      = varPlc;
+  forces[idx].tecTipo        = tipo;
+  forces[idx].tecValor       = valorFinal;
+  forces[idx].tecCriticidade = critic;
+  forces[idx].status         = 'aprovado'; // confirma status final aprovado (force executado)
+  forces[idx].audit.push({ acao:'Registro técnico concluído', por:resp, ts:ts });
+
+  saveForces(forces);
+  FORCE_CURRENT = forces[idx];
+  if(typeof forceSaveToFirebase==='function') forceSaveToFirebase(FORCE_CURRENT);
+
+  toast('✅ Solicitação concluída e registrada!');
+  openForceDetail(FORCE_CURRENT.id);
+}
 
 // Render list when navigating to scr-force - called from main navTo
 

@@ -76,26 +76,26 @@ textarea{resize:none;min-height:90px;line-height:1.5;}
 
       <div class="field">
         <label>Equipamento <span class="req">*</span></label>
-        <select id="f-equip">
-          <option value="">Selecionar equipamento...</option>
-          <option>⚙️ Moinho 1</option>
-          <option>⚙️ Moinho 2</option>
-          <option>🏭 Ensacadeira e Paletizadora 1</option>
-          <option>🏭 Ensacadeira e Paletizadora 2</option>
-          <option>🚜 Retomadora</option>
-          <option>🖥️ Icon</option>
-          <option>🚿 Lavador de Pneus</option>
-        </select>
+        <input type="text" id="f-equip" placeholder="Digite o nome do equipamento...">
       </div>
       <div class="field">
         <label>Processo <span class="req">*</span></label>
-        <select id="f-sistema">
+        <select id="f-sistema" onchange="toggleProcessoOutro()">
           <option value="">Selecionar processo...</option>
+          <option>⚙️ Moinho 1</option>
+          <option>⚙️ Moinho 2</option>
           <option>🏭 Silos</option>
+          <option>🏭 Ensacadeira e Paletizadora 1</option>
+          <option>🏭 Ensacadeira e Paletizadora 2</option>
+          <option>🚜 Retomadora</option>
           <option>🚛 Transporte Ferroviário, Rodoviário e Matéria Prima</option>
           <option>🔥 Extração de Clinquer</option>
+          <option>🖥️ Icon</option>
           <option>🏭 Desga</option>
+          <option>🚿 Lavador de Pneus</option>
+          <option value="outro">Outro...</option>
         </select>
+        <input type="text" id="f-sistema-outro" placeholder="Digite o processo..." style="display:none;margin-top:8px;">
       </div>
       <div class="field">
         <label>Motivo do Force <span class="req">*</span></label>
@@ -161,6 +161,18 @@ function getProto(){
   return 'FC-'+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'-'+String(Date.now()).slice(-4);
 }
 
+function toggleProcessoOutro(){
+  var sel = document.getElementById('f-sistema');
+  var out = document.getElementById('f-sistema-outro');
+  if(sel.value === 'outro'){
+    out.style.display = 'block';
+    out.focus();
+  } else {
+    out.style.display = 'none';
+    out.value = '';
+  }
+}
+
 function getBaseUrl(){
   // URL base do site no GitHub Pages
   var url = window.location.href;
@@ -192,7 +204,8 @@ function submit(){
   var mat    = document.getElementById('f-mat').value.trim();
   var tag    = document.getElementById('f-tag').value.trim();
   var equip  = document.getElementById('f-equip').value.trim();
-  var sist   = document.getElementById('f-sistema').value;
+  var sistSel = document.getElementById('f-sistema').value;
+  var sist   = sistSel === 'outro' ? document.getElementById('f-sistema-outro').value.trim() : sistSel;
   var motivo = document.getElementById('f-motivo').value.trim();
   var aprovV = document.getElementById('f-aprov').value;
 
