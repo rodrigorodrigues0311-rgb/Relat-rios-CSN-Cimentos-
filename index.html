@@ -3081,7 +3081,6 @@ async function generatePDFFromReport(r,photos){
   if(!r){toast('Erro: dados do relatorio nao encontrados');return;}
   if(!window.jspdf){
     toast('jsPDF nao carregado - tentando carregar...');
-    // Tenta carregar dinamicamente
     await new Promise(function(res){
       var s=document.createElement('script');
       s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
@@ -3114,36 +3113,35 @@ async function generatePDFFromReport(r,photos){
     doc.setLineWidth(0.3);
     doc.rect(8,8,W-16,H-16,'S');
   }
-  function nPg(){
-    putFoot();
+  function newPageShell(){
     doc.addPage();y=MT;
     doc.setFillColor(navy[0],navy[1],navy[2]);doc.rect(0,0,W,4,'F');
     drawBorder();
   }
+  function nPg(){putFoot();newPageShell();}
   function chk(n){if(y+n>H-MB-8)nPg();}
 
-  // tx: escreve texto simples SEM alterar y global (para textos alinhados lado a lado)
+  // tx: escreve texto simples SEM alterar y global
   function tx(str,x,ty,sz,c,b){sf(sz,c,b);doc.text(sa(String(str||'')),x,ty);}
 
   // wt: escreve texto com quebra, AVANCA y
   function wt(str,x,mw,sz,c,b){
     sf(sz,c,b);
-    var lh=sz*0.28+1.0;
+    var lh=sz*0.32+1.3;
     var ls=doc.splitTextToSize(sa(String(str||'')),mw);
     ls.forEach(function(l){chk(lh+0.5);doc.text(l,x,y);y+=lh;});
   }
 
   function putFoot(){
-    var pg=doc.getNumberOfPages();
     sd(border,0.3);doc.line(ML,H-MB+3,W-MR,H-MB+3);
-    sf(8,dim,false);
+    sf(9,dim,false);
     doc.text('CSN CIMENTOS - EQUIPE DE MANUTENCAO',ML,H-MB+8);
     doc.text(sa(r.date||''),W/2,H-MB+8,{align:'center'});
-    rr(W-MR-12,H-MB+3,12,7,3,navy);
-    sf(7,white,true);doc.text(doc.getNumberOfPages()+'/?',W-MR-6,H-MB+8,{align:'center'});
+    rr(W-MR-14,H-MB+3,14,7,3,navy);
+    sf(7.5,white,true);doc.text('PG',W-MR-7,H-MB+8,{align:'center'});
   }
 
-  // Foto responsavel: canvas circular 160x160 (menor = mais nitida)
+  // Foto responsavel: canvas circular
   var sp=null;try{sp=localStorage.getItem('p-photo')||localStorage.getItem('rp1');}catch(e){}
   var rPh=null;
   if(sp){
@@ -3161,17 +3159,15 @@ async function generatePDFFromReport(r,photos){
     }catch(e){}
   }
 
-  // Foto colaborador: canvas circular 120x120
+  // Foto colaborador: canvas circular
   async function mkCirc(src){
     var cv=document.createElement('canvas');var sz=80;cv.width=sz;cv.height=sz;
     var ctx=cv.getContext('2d');
-    // fundo branco para evitar cantos quadrados no JPEG
     ctx.fillStyle='#f0f5ff';ctx.fillRect(0,0,sz,sz);
     var im=new Image();
     await new Promise(function(res){im.onload=res;im.onerror=res;im.src=src;});
     ctx.save();ctx.beginPath();ctx.arc(sz/2,sz/2,sz/2-2,0,Math.PI*2);ctx.closePath();ctx.clip();
     ctx.drawImage(im,0,0,sz,sz);ctx.restore();
-    // borda azul fina
     ctx.beginPath();ctx.arc(sz/2,sz/2,sz/2-2,0,Math.PI*2);
     ctx.strokeStyle='rgba(255,255,255,0)';ctx.lineWidth=0;ctx.stroke();
     return cv.toDataURL('image/jpeg',0.88);
@@ -3196,196 +3192,218 @@ async function generatePDFFromReport(r,photos){
     if(ph0){try{cPh[allNames[ni]]=await mkCirc(ph0);}catch(e){}}
   }
 
-  // ===== PAG 1 =====
+  // ════════════════════════════════════════════════════════
+  // DISTRIBUI AS FOTOS DO RELATORIO ENTRE AS ATIVIDADES
+  // O app guarda um unico array global de fotos (S.photos),
+  // nao vinculado a atividade especifica. Para evitar repetir
+  // o MESMO conjunto de fotos em todas as paginas de atividade,
+  // dividimos o array igualmente entre as atividades existentes.
+  // Se uma atividade ja tiver act.photos proprio, usamos ele.
+  // ════════════════════════════════════════════════════════
+  var allPhotos=photos||[];
+  var nActsTotal=(r.acts&&r.acts.length)||0;
+  var photosPerAct=[];
+  if(nActsTotal>0){
+    var base=Math.floor(allPhotos.length/nActsTotal);
+    var rem=allPhotos.length%nActsTotal;
+    var idxP=0;
+    for(var pa=0;pa<nActsTotal;pa++){
+      var take=base+(pa<rem?1:0);
+      // garante pelo menos 0, mas se so houver 1 atividade leva tudo
+      if(nActsTotal===1) take=allPhotos.length;
+      photosPerAct.push(allPhotos.slice(idxP,idxP+take));
+      idxP+=take;
+    }
+  }
+
+  // ════════════════════════════════════════════════════════
+  // PAGINA 1 — CABECALHO + RESUMO
+  // ════════════════════════════════════════════════════════
   doc.setFillColor(navy[0],navy[1],navy[2]);doc.rect(0,0,W,4,'F');
   drawBorder();
 
-  // Logo CSN - grande e destacado
-  sf(20,navy,true);doc.text('CSN',ML,MT+10);
-  sf(9,blue,true);doc.text('CIMENTOS',ML,MT+16);
-  sf(7,sub,false);doc.text('Equipe de Manutencao',ML,MT+20.5);
-  sd(navy,0.6);doc.line(ML,MT+23,ML+52,MT+23);
+  sf(22,navy,true);doc.text('CSN',ML,MT+10);
+  sf(10,blue,true);doc.text('CIMENTOS',ML,MT+16.5);
+  sf(8,sub,false);doc.text('Equipe de Manutencao',ML,MT+21.5);
+  sd(navy,0.6);doc.line(ML,MT+24,ML+55,MT+24);
 
-  // Titulo
-  sf(17,navy,true);doc.text('RELATORIO DE ATIVIDADES',W-MR,MT+10,{align:'right'});
-  sf(8,sub,false);doc.text(sa(r.date||'--'),W-MR,MT+14,{align:'right'});
-  y=MT+27;
+  sf(18,navy,true);doc.text('RELATORIO DE ATIVIDADES',W-MR,MT+10,{align:'right'});
+  sf(9,sub,false);doc.text(sa(r.date||'--'),W-MR,MT+15,{align:'right'});
+  y=MT+28;
 
-  // ===== CARD RESPONSAVEL + BOXES =====
-  var cH=40, cW=CW*0.46;
+  // Card responsavel + boxes
+  var cH=42, cW=CW*0.46;
   rrfs(ML,y,cW,cH,4,navy,navy);
 
-  var pSz=28, pX=ML+4, pY=y+6;
+  var pSz=29, pX=ML+4, pY=y+6.5;
   if(rPh){try{doc.addImage(rPh,'JPEG',pX,pY,pSz,pSz);}catch(e){}}
-  else{rr(pX,pY,pSz,pSz,12,bgCard);sf(14,blue,true);doc.text('?',pX+pSz/2,pY+pSz/2+3,{align:'center'});}
+  else{rr(pX,pY,pSz,pSz,12,bgCard);sf(15,blue,true);doc.text('?',pX+pSz/2,pY+pSz/2+3,{align:'center'});}
 
   var txi=pX+pSz+4;
-  tx('RESPONSAVEL',txi,y+9,5.5,[180,200,240],false);
-  tx(r.resp||'--',txi,y+16,11,white,true);
-  tx(r.cargo||'',txi,y+22,8,[160,190,235],false);
+  tx('RESPONSAVEL',txi,y+10,6.5,[180,200,240],false);
+  tx(r.resp||'--',txi,y+18,12.5,white,true);
+  tx(r.cargo||'',txi,y+25,9,[160,190,235],false);
 
-  // 4 boxes info: posicoes fixas, alinhadas
-  var bx=ML+cW+4, bTW=CW-cW-4, bW=(bTW-3)/2, bH=16, bG=3;
+  var bx=ML+cW+4, bTW=CW-cW-4, bW=(bTW-3)/2, bH=17, bG=3;
   var bRows=[[0,0,'EMPRESA','CSN Cimentos'],[bW+bG,0,'EQUIPE','Manutencao'],
-             [0,bH+bG,'MAO DE OBRA',r.hh?sa(r.hh)+' horas':'--'],
+             [0,bH+bG,'MAO DE OBRA',r.hh?sa(r.hh)+' colaboradores':'--'],
              [bW+bG,bH+bG,'ORDENS OM',r.om?sa(r.om)+' ordens':'--']];
   bRows.forEach(function(row){
     var bxp=bx+row[0], byp=y+row[1];
     rrfs(bxp,byp,bW,bH,3,white,border);
-    // Icone: quadrado arredondado azul-claro pequeno
-    rr(bxp+2,byp+3,9,9,2,bgCard);
-    // Mini shapes para cada icone
-    if(row[2]==='EMPRESA'){doc.setFillColor(sub[0],sub[1],sub[2]);doc.roundedRect(bxp+3.5,byp+4.5,6,7,1,1,'F');doc.setFillColor(white[0],white[1],white[2]);doc.rect(bxp+5,byp+7,3,4,'F');}
-    if(row[2]==='EQUIPE'){doc.setFillColor(sub[0],sub[1],sub[2]);doc.circle(bxp+6.5,byp+7.5,3,'F');doc.setFillColor(white[0],white[1],white[2]);doc.circle(bxp+6.5,byp+7.5,1.2,'F');}
-    if(row[2]==='MAO DE OBRA'){doc.setFillColor(sub[0],sub[1],sub[2]);doc.circle(bxp+6.5,byp+7.5,3,'F');doc.setFillColor(white[0],white[1],white[2]);doc.circle(bxp+6.5,byp+7.5,1.7,'F');doc.setFillColor(sub[0],sub[1],sub[2]);doc.rect(bxp+6.3,byp+4.8,0.4,2.5,'F');}
-    if(row[2]==='ORDENS OM'){doc.setFillColor(sub[0],sub[1],sub[2]);doc.roundedRect(bxp+3.5,byp+4,6,8,1,1,'F');doc.setFillColor(white[0],white[1],white[2]);doc.rect(bxp+4.5,byp+5.5,4,0.7,'F');doc.rect(bxp+4.5,byp+7,4,0.7,'F');doc.rect(bxp+4.5,byp+8.5,3,0.7,'F');}
-    // Texto label e valor \u2014 alinhados ao X fixo
-    tx(row[2],bxp+14,byp+6,7.5,sub,true);
-    tx(row[3],bxp+14,byp+14,11,text,true);
+    rr(bxp+2,byp+3.5,9.5,9.5,2,bgCard);
+    if(row[2]==='EMPRESA'){doc.setFillColor(sub[0],sub[1],sub[2]);doc.roundedRect(bxp+3.5,byp+5,6,7,1,1,'F');doc.setFillColor(white[0],white[1],white[2]);doc.rect(bxp+5,byp+7.5,3,4,'F');}
+    if(row[2]==='EQUIPE'){doc.setFillColor(sub[0],sub[1],sub[2]);doc.circle(bxp+6.5,byp+8.2,3,'F');doc.setFillColor(white[0],white[1],white[2]);doc.circle(bxp+6.5,byp+8.2,1.2,'F');}
+    if(row[2]==='MAO DE OBRA'){doc.setFillColor(sub[0],sub[1],sub[2]);doc.circle(bxp+6.5,byp+8.2,3,'F');doc.setFillColor(white[0],white[1],white[2]);doc.circle(bxp+6.5,byp+8.2,1.7,'F');doc.setFillColor(sub[0],sub[1],sub[2]);doc.rect(bxp+6.3,byp+5.5,0.4,2.5,'F');}
+    if(row[2]==='ORDENS OM'){doc.setFillColor(sub[0],sub[1],sub[2]);doc.roundedRect(bxp+3.5,byp+4.5,6,8,1,1,'F');doc.setFillColor(white[0],white[1],white[2]);doc.rect(bxp+4.5,byp+6,4,0.7,'F');doc.rect(bxp+4.5,byp+7.5,4,0.7,'F');doc.rect(bxp+4.5,byp+9,3,0.7,'F');}
+    tx(row[2],bxp+14.5,byp+7,8,sub,true);
+    tx(row[3],bxp+14.5,byp+15,12,text,true);
   });
-  y+=cH+5;
+  y+=cH+6;
 
-  // ===== SUPERVISORES + DDS =====
-  var BH=22; var GAP2=3; var hw=(CW-GAP2)/2;
-
-  // --- Caixa SUPERVISORES / LIDER ---
+  // Supervisores + DDS
+  var BH=25; var GAP2=3; var hw=(CW-GAP2)/2;
   rrfs(ML,y,hw,BH,2,white,border);
   doc.setFillColor(blue[0],blue[1],blue[2]);
-  doc.circle(ML+4.5,y+7,1.7,'F');doc.circle(ML+7,y+7,1.4,'F');
-  doc.ellipse(ML+4.5,y+10.5,2.2,1.3,'F');doc.ellipse(ML+7,y+10.5,1.9,1.3,'F');
-  tx('SUPERVISORES / LIDER',ML+11,y+6,7,blue,true);
-  sf(6,text,false);
+  doc.circle(ML+5,y+8,1.9,'F');doc.circle(ML+8,y+8,1.6,'F');
+  doc.ellipse(ML+5,y+12,2.5,1.5,'F');doc.ellipse(ML+8,y+12,2.2,1.5,'F');
+  tx('SUPERVISORES / LIDER',ML+12,y+7,8,blue,true);
+  sf(7.5,text,false);
   var supTxt=r.supervisores&&r.supervisores.length?'Sup: '+r.supervisores.join(' / '):
              (r.supervisor?'Sup: '+sa(r.supervisor):'');
   var liderTxt=r.lider?'Lider: '+sa(r.lider):'';
-  if(supTxt){var sl=doc.splitTextToSize(supTxt,hw-13);doc.text(sl[0],ML+11,y+12);}
-  if(liderTxt){doc.text(liderTxt,ML+11,y+17);}
+  if(supTxt){var sl=doc.splitTextToSize(supTxt,hw-14);doc.text(sl[0],ML+12,y+14);}
+  if(liderTxt){doc.text(liderTxt,ML+12,y+20);}
+  if(!supTxt&&!liderTxt){sf(7.5,sub,false);doc.text('--',ML+12,y+14);}
 
-  // --- Caixa TEMA DO DDS ---
   rrfs(ML+hw+GAP2,y,hw,BH,2,white,border);
   doc.setFillColor(blue[0],blue[1],blue[2]);
-  doc.roundedRect(ML+hw+GAP2+4,y+4,4,6,0.7,0.7,'F');
+  doc.roundedRect(ML+hw+GAP2+4.5,y+4.5,4.5,6.5,0.7,0.7,'F');
   doc.setFillColor(white[0],white[1],white[2]);
-  doc.rect(ML+hw+GAP2+4.8,y+5.2,2.4,0.5,'F');
-  doc.rect(ML+hw+GAP2+4.8,y+6.5,2.4,0.5,'F');
-  doc.rect(ML+hw+GAP2+4.8,y+7.8,1.8,0.5,'F');
-  tx('TEMA DO DDS',ML+hw+GAP2+11,y+6,7,blue,true);
-  sf(6.5,text,false);
+  doc.rect(ML+hw+GAP2+5.4,y+5.8,2.7,0.6,'F');
+  doc.rect(ML+hw+GAP2+5.4,y+7.3,2.7,0.6,'F');
+  doc.rect(ML+hw+GAP2+5.4,y+8.8,2,0.6,'F');
+  tx('TEMA DO DDS',ML+hw+GAP2+12,y+7,8,blue,true);
+  sf(7.5,text,false);
   if(r.dds){
-    var dl=doc.splitTextToSize(sa(r.dds),hw-15);
-    doc.text(dl[0]||'',ML+hw+GAP2+11,y+12);
-    if(dl[1])doc.text(dl[1],ML+hw+GAP2+11,y+17);
+    var dl=doc.splitTextToSize(sa(r.dds),hw-16);
+    doc.text(dl[0]||'',ML+hw+GAP2+12,y+14);
+    if(dl[1])doc.text(dl[1],ML+hw+GAP2+12,y+20);
+  } else {
+    sf(7.5,sub,false);doc.text('--',ML+hw+GAP2+12,y+14);
   }
   y+=BH+GAP2;
 
-  // --- Caixa TIPO DE ATIVIDADE ---
+  // Tipo de atividade
   rrfs(ML,y,CW,BH,2,white,border);
-  rr(ML,y,10,BH,2,navy);
+  rr(ML,y,11,BH,2,navy);
   sd(white,0.6);
-  doc.circle(ML+5,y+BH/2,2.5,'S');
-  doc.circle(ML+5,y+BH/2,1.4,'S');
+  doc.circle(ML+5.5,y+BH/2,2.7,'S');
+  doc.circle(ML+5.5,y+BH/2,1.5,'S');
   doc.setFillColor(white[0],white[1],white[2]);
-  doc.circle(ML+5,y+BH/2,0.6,'F');
-  tx('TIPO DE ATIVIDADE',ML+13,y+6,7,navy,true);
-  tx('CLASSIFICACAO',ML+13,y+12,5,sub,true);
-  tx(r.tipo||'--',ML+13,y+17,6.5,text,false);
-  tx('EQUIPAMENTO',ML+CW*0.5,y+12,5,sub,true);
-  tx(r.equip?sa(r.equip):'--',ML+CW*0.5,y+17,6.5,text,false);
+  doc.circle(ML+5.5,y+BH/2,0.7,'F');
+  tx('TIPO DE ATIVIDADE',ML+14,y+7,8,navy,true);
+  tx('CLASSIFICACAO',ML+14,y+14,6,sub,true);
+  tx(r.tipo||'--',ML+14,y+20,8,text,false);
+  tx('EQUIPAMENTO',ML+CW*0.5,y+14,6,sub,true);
+  tx(r.equip?sa(r.equip):'--',ML+CW*0.5,y+20,8,text,false);
   y+=BH+GAP2;
 
-  // --- Caixa AUSENCIAS DO DIA ---
+  // Ausencias do dia
   var nAus=r.abss&&r.abss.length?r.abss.length:0;
-  var ausH=nAus>1?BH+(nAus-1)*9:BH;
+  var ausH=nAus>1?BH+(nAus-1)*9.5:BH;
   rrfs(ML,y,CW,ausH,2,white,border);
-  rr(ML,y,10,ausH,2,navy);
+  rr(ML,y,11,ausH,2,navy);
   doc.setFillColor(white[0],white[1],white[2]);
   var icY=y+ausH/2;
-  doc.circle(ML+4,icY-2,1.7,'F');doc.circle(ML+7,icY-2,1.4,'F');
-  doc.ellipse(ML+4,icY+1.5,2.1,1.2,'F');doc.ellipse(ML+7,icY+1.5,1.9,1.2,'F');
-  tx('AUSENCIAS DO DIA',ML+13,y+6,7,navy,true);
+  doc.circle(ML+4.5,icY-2,1.9,'F');doc.circle(ML+7.5,icY-2,1.6,'F');
+  doc.ellipse(ML+4.5,icY+2,2.4,1.4,'F');doc.ellipse(ML+7.5,icY+2,2.1,1.4,'F');
+  tx('AUSENCIAS DO DIA',ML+14,y+7,8,navy,true);
   if(!nAus){
-    tx('Nenhuma ausencia no dia.',ML+13,y+14,6.5,sub,false);
+    tx('Nenhuma ausencia no dia.',ML+14,y+16,7.5,sub,false);
   }else{
-    var ayy=y+12;
+    var ayy=y+14;
     r.abss.forEach(function(a,i){
       var aph=cPh[a.name];
-      if(aph){try{doc.addImage(aph,'JPEG',ML+13,ayy-4,6,6);}catch(e){}}
-      tx((i+1)+'. '+sa(a.name)+(a.reason?' - '+sa(a.reason):''),ML+(aph?21:13),ayy,6.5,text,false);
-      ayy+=9;
+      if(aph){try{doc.addImage(aph,'JPEG',ML+14,ayy-4.5,7,7);}catch(e){}}
+      tx((i+1)+'. '+sa(a.name)+(a.reason?' - '+sa(a.reason):''),ML+(aph?23:14),ayy,7.5,text,false);
+      ayy+=9.5;
     });
   }
-  y+=ausH+5;
+  y+=ausH+6;
 
-  // ===== ATIVIDADES REALIZADAS (resumo) =====
+  // Atividades realizadas (resumo)
   var nActs=r.acts&&r.acts.length?r.acts.length:0;
-  // Calcular altura real baseada no conteudo de cada linha
-  sf(8,text,false);
+  sf(9,text,false);
   var actLines=[];
   if(nActs===0){
     actLines.push('Nenhuma atividade registrada.');
   } else {
     r.acts.forEach(function(a,ai){
-      var preview=sa(a.desc||'').substring(0,80)+(sa(a.desc||'').length>80?'...':'');
-      var wrapped=doc.splitTextToSize((ai+1)+'. '+preview, CW-20);
+      var preview=sa(a.desc||'').substring(0,75)+(sa(a.desc||'').length>75?'...':'');
+      var wrapped=doc.splitTextToSize((ai+1)+'. '+preview, CW-22);
       wrapped.forEach(function(l){actLines.push(l);});
     });
   }
-  var actListH=12+(actLines.length*7)+4;
+  var actListH=14+(actLines.length*8)+4;
   rrfs(ML,y,CW,actListH,3,white,border);
-  rr(ML,y,13,actListH,3,navy);
+  rr(ML,y,14,actListH,3,navy);
   doc.setFillColor(white[0],white[1],white[2]);
-  doc.roundedRect(ML+3.5,y+4,6,9,1,1,'F');
+  doc.roundedRect(ML+4,y+4.5,6.5,10,1,1,'F');
   doc.setFillColor(navy[0],navy[1],navy[2]);
-  doc.rect(ML+4.5,y+5.5,4,0.7,'F');doc.rect(ML+4.5,y+7.5,4,0.7,'F');doc.rect(ML+4.5,y+9.5,3,0.7,'F');
-  tx('ATIVIDADES REALIZADAS',ML+16,y+8,9,navy,true);
-  sf(7.5,text,false);
-  var ay2=y+14;
+  doc.rect(ML+5,y+6.3,4.5,0.8,'F');doc.rect(ML+5,y+8.5,4.5,0.8,'F');doc.rect(ML+5,y+10.7,3.3,0.8,'F');
+  tx('ATIVIDADES REALIZADAS',ML+17,y+9,10,navy,true);
+  sf(8.5,text,false);
+  var ay2=y+16;
   actLines.forEach(function(l){
-    doc.text(l,ML+16,ay2);
-    ay2+=7;
+    doc.text(l,ML+17,ay2);
+    ay2+=8;
   });
   y+=actListH+4;
 
   putFoot();
 
-  // ===== PAGINAS DE ATIVIDADES =====
+  // ════════════════════════════════════════════════════════
+  // PAGINAS DE ATIVIDADES — fontes ampliadas, fotos corretas
+  // por atividade (divisao proporcional do array global)
+  // ════════════════════════════════════════════════════════
   if(r.acts&&r.acts.length){
     r.acts.forEach(function(act,ai){
-      doc.addPage();y=MT;
-      doc.setFillColor(navy[0],navy[1],navy[2]);doc.rect(0,0,W,4,'F');
-      drawBorder();
+      newPageShell();
 
-      // Header atividade
-      rrfs(ML,y,CW,13,3,bgCard,border);
-      tx('ATIVIDADE '+(ai+1),ML+5,y+9.5,10,navy,true);
-      y+=17;
+      // Header da atividade — numero em badge circular + titulo
+      rr(ML,y,13,13,6.5,navy);
+      sf(13,white,true);doc.text(String(ai+1),ML+6.5,y+9,{align:'center'});
+      tx('ATIVIDADE '+(ai+1),ML+18,y+9,13,navy,true);
+      sd(border,0.3);doc.line(ML,y+17,W-MR,y+17);
+      y+=23;
 
-      // Descricao
+      // Descricao da atividade
       if(act.desc&&act.desc.trim()){
-        sf(10,text,false);
+        sf(11,text,false);
         var descL=doc.splitTextToSize(sa(act.desc),CW);
-        descL.forEach(function(ln){chk(5.5);doc.text(ln,ML,y);y+=5;});
-        y+=3;
+        descL.forEach(function(ln){chk(6.2);doc.text(ln,ML,y);y+=6.2;});
+        y+=5;
       }
 
-      // Colaboradores
+      // Colaboradores envolvidos — avatares maiores, texto maior
       var cols3=act.cols||[];
       if(cols3.length){
-        chk(28);
-        tx('COLABORADORES ENVOLVIDOS',ML,y,10,blue,true);y+=8;
-        var avSz=22,avGap=8;
+        chk(32);
+        tx('COLABORADORES ENVOLVIDOS',ML,y,10.5,blue,true);y+=3.5;
+        sd(border,0.25);doc.line(ML,y,ML+68,y);y+=8;
+
+        var avSz=22,labelW=26;
         var cx3=ML;
         cols3.forEach(function(colName){
-          if(cx3+avSz+16>W-MR){cx3=ML;y+=avSz+13;chk(avSz+13);}
+          var cellW=Math.max(avSz,labelW)+6;
+          if(cx3+cellW>W-MR){cx3=ML;y+=avSz+14;chk(avSz+14);}
           var ph3=cPh[colName];
           if(ph3){
-            // Imagem ja eh circular - nao adiciona borda quadrada
             try{
               doc.addImage(ph3,'JPEG',cx3,y,avSz,avSz);
-              // Mascara cantos para simular recorte circular
               var r2=avSz/2;
               doc.setFillColor(255,255,255);
-              // 4 triangulos nos cantos
               doc.triangle(cx3,y,cx3+r2*0.4,y,cx3,y+r2*0.4,'F');
               doc.triangle(cx3+avSz,y,cx3+avSz-r2*0.4,y,cx3+avSz,y+r2*0.4,'F');
               doc.triangle(cx3,y+avSz,cx3+r2*0.4,y+avSz,cx3,y+avSz-r2*0.4,'F');
@@ -3393,98 +3411,96 @@ async function generatePDFFromReport(r,photos){
             }catch(e){ph3=null;}
           }
           if(!ph3){
-            // Placeholder circular
             doc.setFillColor(bgCard[0],bgCard[1],bgCard[2]);
             doc.circle(cx3+avSz/2,y+avSz/2,avSz/2,'F');
             sd(border,0.2);doc.circle(cx3+avSz/2,y+avSz/2,avSz/2,'S');
             var ini=(colName.split(' ').slice(0,2).map(function(w){return w[0]||'';}).join(''));
-            sf(7,blue,true);doc.text(ini,cx3+avSz/2,y+avSz/2+2.2,{align:'center'});
+            sf(8.5,blue,true);doc.text(ini,cx3+avSz/2,y+avSz/2+2.5,{align:'center'});
           }
-          // Nome abaixo
           var pts=colName.split(' ');
           var sn=pts.length>1?pts[0]+' '+pts[pts.length-1]:pts[0];
-          sf(7,text,false);
-          var nls=doc.splitTextToSize(sa(sn),avSz+10);
-          doc.text(nls[0],cx3+avSz/2,y+avSz+4,{align:'center'});
-          if(nls[1])doc.text(nls[1],cx3+avSz/2,y+avSz+7.5,{align:'center'});
-          cx3+=avSz+avGap+16;
+          sf(8,text,false);
+          doc.text(sa(sn),cx3+avSz/2,y+avSz+5.5,{align:'center',maxWidth:cellW});
+          cx3+=cellW;
         });
-        y+=avSz+13;
+        y+=avSz+14;
       }
 
-      // Fotos 2 por linha
-      if(photos&&photos.length){
-        chk(12);
-        tx('REGISTRO FOTOGRAFICO',ML,y,7.5,blue,true);y+=6;
-        var gap=4,iw=(CW-gap)/2,ih=Math.round(iw*0.6);
-        for(var j=0;j<photos.length;j+=2){
-          chk(ih+5);
-          try{doc.addImage(photos[j],'JPEG',ML,y,iw,ih);rrs(ML,y,iw,ih,2,border,0.2);}catch(e){}
-          if(photos[j+1]){try{doc.addImage(photos[j+1],'JPEG',ML+iw+gap,y,iw,ih);rrs(ML+iw+gap,y,iw,ih,2,border,0.2);}catch(e){}}
-          y+=ih+4;
+      // Registro fotografico — fotos especificas desta atividade
+      var actPhotos=(act.photos&&act.photos.length)?act.photos:(photosPerAct[ai]||[]);
+      if(actPhotos.length){
+        chk(14);
+        tx('REGISTRO FOTOGRAFICO',ML,y,10.5,blue,true);y+=3.5;
+        sd(border,0.25);doc.line(ML,y,ML+68,y);y+=7;
+        var gap=4,iw=(CW-gap)/2,ih=Math.round(iw*0.62);
+        for(var j=0;j<actPhotos.length;j+=2){
+          chk(ih+6);
+          try{doc.addImage(actPhotos[j],'JPEG',ML,y,iw,ih);rrs(ML,y,iw,ih,2,border,0.2);}catch(e){}
+          if(actPhotos[j+1]){try{doc.addImage(actPhotos[j+1],'JPEG',ML+iw+gap,y,iw,ih);rrs(ML+iw+gap,y,iw,ih,2,border,0.2);}catch(e){}}
+          y+=ih+5;
         }
-        y+=3;
-      }
-
-      // Desvios e Pendencias
-      var hasD=r.devs&&r.devs.length,hasP=r.pends&&r.pends.length;
-      if(hasD||hasP){
-        var sW=hasD&&hasP?(CW-4)/2:CW;
-        var dStartY=y;
-
-        if(hasD){
-          chk(14);
-          rrfs(ML,y,sW,11,3,white,border);rr(ML,y,13,11,3,navy);
-          // Triangulo aviso
-          doc.setFillColor(white[0],white[1],white[2]);
-          doc.triangle(ML+6.5,y+2.5,ML+2.5,y+9.5,ML+10.5,y+9.5,'F');
-          doc.setFillColor(navy[0],navy[1],navy[2]);doc.rect(ML+6.1,y+4,0.8,3,'F');doc.rect(ML+6.1,y+7.5,0.8,1,'F');
-          tx('ATIVIDADES NAO REALIZADAS',ML+16,y+8,7.5,navy,true);
-          y+=14;
-          r.devs.forEach(function(d,di){
-            chk(12);
-            tx('Desvio '+(di+1)+':',ML+3,y,7.5,text,true);y+=4.2;
-            sf(7.5,text,false);
-            var dl2=doc.splitTextToSize(sa(d),sW-6);
-            dl2.forEach(function(ln){chk(4.2);doc.text(ln,ML+3,y);y+=4.2;});
-            y+=2;
-          });
-        }
-
-        if(hasP){
-          var pendX=hasD?ML+sW+4:ML;
-          var pendY=hasD?dStartY:y;
-          chk(14);
-          rrfs(pendX,pendY,sW,11,3,white,border);rr(pendX,pendY,13,11,3,navy);
-          // Clipboard branco
-          doc.setFillColor(white[0],white[1],white[2]);
-          doc.roundedRect(pendX+3.5,pendY+2.5,6,7,1,1,'F');
-          doc.setFillColor(navy[0],navy[1],navy[2]);doc.rect(pendX+4.5,pendY+4,4,0.7,'F');doc.rect(pendX+4.5,pendY+5.5,4,0.7,'F');doc.rect(pendX+4.5,pendY+7,3,0.7,'F');
-          tx('PENDENCIAS ENCONTRADAS',pendX+16,pendY+8,7.5,navy,true);
-          var pendBodyY=pendY+14;
-          r.pends.forEach(function(p,pi){
-            chk(12);
-            tx('Pendencia '+(pi+1)+':',pendX+3,pendBodyY,7.5,text,true);pendBodyY+=4.2;
-            sf(7.5,text,true);
-            var pl2=doc.splitTextToSize(sa(p).toUpperCase(),sW-6);
-            pl2.forEach(function(ln){chk(4.2);doc.text(ln,pendX+3,pendBodyY);pendBodyY+=4.2;});
-            pendBodyY+=2;
-          });
-          if(hasD&&pendBodyY>y)y=pendBodyY;
-          else if(!hasD)y=pendBodyY;
-        }
+        y+=2;
+      } else if(!cols3.length){
+        // nada a mostrar nesta atividade alem da descricao
       }
 
       putFoot();
     });
   }
 
-  // Corrige paginacao
+  // ════════════════════════════════════════════════════════
+  // PAGINA FINAL — Desvios e Pendencias (uma unica vez)
+  // ════════════════════════════════════════════════════════
+  var hasD=r.devs&&r.devs.length,hasP=r.pends&&r.pends.length;
+  if(hasD||hasP){
+    newPageShell();
+
+    if(hasD){
+      chk(16);
+      rrfs(ML,y,CW,13,3,white,border);rr(ML,y,15,13,3,navy);
+      doc.setFillColor(white[0],white[1],white[2]);
+      doc.triangle(ML+7.5,y+3,ML+3,y+11,ML+12,y+11,'F');
+      doc.setFillColor(navy[0],navy[1],navy[2]);doc.rect(ML+7,y+5,1,3.5,'F');doc.rect(ML+7,y+9,1,1.2,'F');
+      tx('ATIVIDADES NAO REALIZADAS',ML+19,y+9,10,navy,true);
+      y+=19;
+      r.devs.forEach(function(d,di){
+        chk(15);
+        tx('Desvio '+(di+1)+':',ML+3,y,9.5,text,true);y+=5.6;
+        sf(9.5,text,false);
+        var dl2=doc.splitTextToSize(sa(d),CW-6);
+        dl2.forEach(function(ln){chk(5.6);doc.text(ln,ML+3,y);y+=5.6;});
+        y+=4;
+      });
+      y+=2;
+    }
+
+    if(hasP){
+      chk(16);
+      rrfs(ML,y,CW,13,3,white,border);rr(ML,y,15,13,3,navy);
+      doc.setFillColor(white[0],white[1],white[2]);
+      doc.roundedRect(ML+4,y+3,7,8.5,1,1,'F');
+      doc.setFillColor(navy[0],navy[1],navy[2]);doc.rect(ML+5.2,y+4.8,4.6,0.8,'F');doc.rect(ML+5.2,y+6.6,4.6,0.8,'F');doc.rect(ML+5.2,y+8.4,3.4,0.8,'F');
+      tx('PENDENCIAS ENCONTRADAS',ML+19,y+9,10,navy,true);
+      y+=19;
+      r.pends.forEach(function(p,pi){
+        chk(15);
+        tx('Pendencia '+(pi+1)+':',ML+3,y,9.5,text,true);y+=5.6;
+        sf(9.5,text,true);
+        var pl2=doc.splitTextToSize(sa(p).toUpperCase(),CW-6);
+        pl2.forEach(function(ln){chk(5.6);doc.text(ln,ML+3,y);y+=5.6;});
+        y+=4;
+      });
+    }
+
+    putFoot();
+  }
+
+  // Corrige paginacao final (X/Y correto em todas as paginas)
   var tot=doc.getNumberOfPages();
   for(var pg=1;pg<=tot;pg++){
     doc.setPage(pg);
-    rr(W-MR-12,H-MB+3,12,7,3,navy);
-    sf(7,white,true);doc.text(pg+'/'+tot,W-MR-6,H-MB+8,{align:'center'});
+    rr(W-MR-14,H-MB+3,14,7,3,navy);
+    sf(7.5,white,true);doc.text(pg+'/'+tot,W-MR-7,H-MB+8,{align:'center'});
   }
 
   var fn=(r.proto?r.proto:'Relatorio_CSN_'+(r.date||'sem-data').replace(/[/]/g,'-'))+'.pdf';
@@ -3496,6 +3512,8 @@ async function generatePDFFromReport(r,photos){
   }else{doc.save(fn);toast('PDF salvo!');}
   }catch(pdfErr){console.error('PDF erro:',pdfErr);toast('Erro PDF: '+(pdfErr.message||String(pdfErr)).substring(0,50));}
 }
+
+
 
 
 // \u2500\u2500 PULL TO REFRESH \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
