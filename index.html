@@ -3309,7 +3309,7 @@ async function generatePDFFromReport(r,photos){
       rr(cx2,cy,leftW,headH,2,navy2);
       sf(8.5,white,true);
       doc.setFillColor(white[0],white[1],white[2]);
-      doc.rect(cx2+3,cy+2,3.2,3.2,0.6,0.6,'F');
+      doc.roundedRect(cx2+3,cy+2,3.2,3.2,0.6,0.6,'F');
       doc.setFillColor(navy2[0],navy2[1],navy2[2]);
       doc.rect(cx2+3.7,cy+2.7,0.5,1.8,'F');doc.rect(cx2+4.6,cy+2.7,0.5,1.8,'F');
       tx('ATIVIDADE '+(ai+1)+'  |  '+sa(act.desc||'').toUpperCase(),cx2+9,cy+5.5,8.5,white,true);
