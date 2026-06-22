@@ -3121,13 +3121,12 @@ async function generatePDFFromReport(r,photos){
   }
   try{
   var jsPDF=window.jspdf.jsPDF;
-  // Paisagem A4 para caber tudo numa pagina larga, igual ao infografico
-  var doc=new jsPDF({orientation:'l',unit:'mm',format:'a3'});
-  var W=420,H=297,ML=10,MR=10,MT=10;
+  var doc=new jsPDF({orientation:'p',unit:'mm',format:'a4'});
+  var W=210,H=297,ML=10,MR=10,MT=10;
   var navy=[58,18,97],navy2=[76,29,149],blue=[109,40,217],white=[255,255,255];
   var bg=[247,248,252],bgCard=[235,242,255],border=[225,225,235];
   var text=[20,20,30],sub=[90,100,120],dim=[150,160,180];
-  var orange=[230,126,34],red=[200,30,30];
+  var red=[200,30,30],orange=[230,126,34];
 
   function sf(sz,c,b){doc.setFontSize(sz);doc.setTextColor(c[0],c[1],c[2]);doc.setFont('helvetica',b?'bold':'normal');}
   function sd(c,lw){doc.setDrawColor(c[0],c[1],c[2]);doc.setLineWidth(lw||0.3);}
@@ -3137,293 +3136,262 @@ async function generatePDFFromReport(r,photos){
   function tx(str,x,y,sz,c,b,opt){sf(sz,c,b);doc.text(sa(String(str||'')),x,y,opt);}
   function rect(x,y,w,h,c){doc.setFillColor(c[0],c[1],c[2]);doc.rect(x,y,w,h,'F');}
 
-  // Layout geral: fundo branco com leve cinza
   rect(0,0,W,H,white);
 
   // ════════════════════════════════════════════════════════
   // CABECALHO
   // ════════════════════════════════════════════════════════
   var y=MT;
-  sf(26,navy,true);doc.text('RELATORIO DE ATIVIDADES',ML,y+9);
-  sf(11,blue,true);doc.text('EQUIPE DE MANUTENCAO',ML,y+16);
-  sd(border,0.4);doc.line(ML,y+19,W-MR,y+19);
-
-  // Logo CSN no canto direito
-  sf(18,navy,true);doc.text('CSN',W-MR,y+9,{align:'right'});
-  sf(9,blue,true);doc.text('CIMENTOS',W-MR,y+15,{align:'right'});
-  y+=25;
+  sf(20,navy,true);doc.text('RELATORIO DE ATIVIDADES',ML,y+7);
+  sf(9,blue,true);doc.text('EQUIPE DE MANUTENCAO',ML,y+12.5);
+  sf(15,navy,true);doc.text('CSN',W-MR,y+7,{align:'right'});
+  sf(7.5,blue,true);doc.text('CIMENTOS',W-MR,y+12,{align:'right'});
+  y+=16;
+  sd(border,0.4);doc.line(ML,y,W-MR,y);
+  y+=4;
 
   // ════════════════════════════════════════════════════════
-  // FAIXA DE INFOS (Data, Responsavel, Empresa, Equipe)
+  // FAIXA 1: Data / Responsavel / Empresa / Equipe
   // ════════════════════════════════════════════════════════
-  var infoH=18;
-  rrfs(ML,y,W-ML-MR,infoH,3,bg,border,0.25);
+  var infoH=15;
+  rrfs(ML,y,W-ML-MR,infoH,2.5,bg,border,0.25);
   var colW=(W-ML-MR)/4;
   var infoCols=[
     ['DATA', r.date||'--'],
-    ['RESPONSAVEL', (r.resp||'--')+(r.cargo?'\n'+r.cargo:'')],
+    ['RESPONSAVEL', (r.resp||'--')],
     ['EMPRESA','CSN Cimentos'],
     ['EQUIPE','Manutencao']
   ];
   infoCols.forEach(function(c,i){
-    var cx=ML+i*colW+6;
-    rr(cx-3.5,y+4,7,7,2,navy2);
-    tx(c[0],cx+6,y+7,7,sub,true);
-    var lines=String(c[1]).split('\n');
-    tx(lines[0],cx+6,y+13,9.5,text,true);
-    if(lines[1])tx(lines[1],cx+6,y+17,6.5,sub,false);
-    if(i<3){sd(border,0.2);doc.line(ML+(i+1)*colW,y+3,ML+(i+1)*colW,y+infoH-3);}
+    var cx=ML+i*colW+5;
+    rr(cx-3,y+3.5,6,6,1.5,navy2);
+    tx(c[0],cx+5,y+6,6,sub,true);
+    var ln=doc.splitTextToSize(String(c[1]),colW-9);
+    tx(ln[0],cx+5,y+11,7.8,text,true);
+    if(i<3){sd(border,0.2);doc.line(ML+(i+1)*colW,y+2.5,ML+(i+1)*colW,y+infoH-2.5);}
   });
-  y+=infoH+4;
+  y+=infoH+3;
 
-  // Segunda faixa: Tipo atividade, Equipamento, Classificacao, Mao de obra, Ordens
-  var infoH2=18;
-  rrfs(ML,y,W-ML-MR,infoH2,3,bg,border,0.25);
+  // ════════════════════════════════════════════════════════
+  // FAIXA 2: Tipo / Equipamento / Classificacao / Mao de obra / Ordens
+  // ════════════════════════════════════════════════════════
+  var infoH2=15;
+  rrfs(ML,y,W-ML-MR,infoH2,2.5,bg,border,0.25);
   var colW2=(W-ML-MR)/5;
   var infoCols2=[
     ['TIPO DE ATIVIDADE', r.tipo||'--'],
-    ['EQUIPAMENTO / AREA', r.equip||'--'],
+    ['EQUIPAMENTO/AREA', r.equip||'--'],
     ['CLASSIFICACAO', r.tipo||'--'],
     ['MAO DE OBRA', r.hh?sa(r.hh):'--'],
     ['ORDENS OM', r.om?sa(r.om):'--']
   ];
   infoCols2.forEach(function(c,i){
-    var cx=ML+i*colW2+6;
-    rr(cx-3.5,y+4,7,7,2,navy2);
-    tx(c[0],cx+6,y+7,6.5,sub,true);
-    var ln=doc.splitTextToSize(String(c[1]),colW2-12);
-    tx(ln[0],cx+6,y+13,9,text,true);
-    if(i<4){sd(border,0.2);doc.line(ML+(i+1)*colW2,y+3,ML+(i+1)*colW2,y+infoH2-3);}
+    var cx=ML+i*colW2+4.5;
+    rr(cx-3,y+3.5,5.5,5.5,1.5,navy2);
+    tx(c[0],cx+4.5,y+6,5.3,sub,true);
+    var ln=doc.splitTextToSize(String(c[1]),colW2-7.5);
+    tx(ln[0],cx+4.5,y+11,7,text,true);
+    if(i<4){sd(border,0.2);doc.line(ML+(i+1)*colW2,y+2.5,ML+(i+1)*colW2,y+infoH2-2.5);}
   });
-  y+=infoH2+4;
-
-  // Terceira faixa: Supervisores/Lider/DDS + Ausencias
-  var nAus=r.abss&&r.abss.length?r.abss.length:0;
-  var infoH3=Math.max(16,8+nAus*5.5);
-  var halfW=(W-ML-MR-4)/2;
-  rrfs(ML,y,halfW,infoH3,3,bg,border,0.25);
-  rr(ML+3,y+4,7,7,2,navy2);
-  tx('SUPERVISORES / LIDER / TEMA DO DDS',ML+12,y+7,7,sub,true);
-  var supText=(r.supervisores&&r.supervisores.length?r.supervisores.join(', '):(r.supervisor||'--'))+
-              (r.dds?' | DDS: '+sa(r.dds):'');
-  sf(8.5,text,false);
-  var supLines=doc.splitTextToSize(supText,halfW-16);
-  doc.text(supLines[0]||'--',ML+12,y+13);
-  if(supLines[1])doc.text(supLines[1],ML+12,y+18);
-
-  rrfs(ML+halfW+4,y,halfW,infoH3,3,bg,border,0.25);
-  rr(ML+halfW+4+3,y+4,7,7,2,navy2);
-  tx('AUSENCIAS DO DIA',ML+halfW+4+12,y+7,7,sub,true);
-  if(!nAus){
-    sf(8.5,sub,false);doc.text('Nenhuma ausencia no dia.',ML+halfW+4+12,y+13);
-  }else{
-    var ayy=y+12;
-    r.abss.forEach(function(a,i){
-      sf(8,text,false);
-      doc.text((i+1)+'. '+sa(a.name)+(a.reason?' - '+sa(a.reason):''),ML+halfW+4+12,ayy);
-      ayy+=5.5;
-    });
-  }
-  y+=infoH3+4;
+  y+=infoH2+3;
 
   // ════════════════════════════════════════════════════════
-  // ATIVIDADES REALIZADAS (resumo, faixa roxa)
+  // FAIXA 3: Supervisores/DDS + Ausencias
+  // ════════════════════════════════════════════════════════
+  var nAus=r.abss&&r.abss.length?r.abss.length:0;
+  var infoH3=Math.max(15,8+nAus*5);
+  var halfW=(W-ML-MR-3)/2;
+  rrfs(ML,y,halfW,infoH3,2.5,bg,border,0.25);
+  rr(ML+3,y+3.5,5.5,5.5,1.5,navy2);
+  sf(6,sub,true);
+  var supL=doc.splitTextToSize('SUPERVISORES / LIDER TEMA DO DDS',halfW-13);
+  doc.text(supL,ML+11,y+6);
+  var supText=(r.supervisores&&r.supervisores.length?r.supervisores.join(', '):(r.supervisor||'--'));
+  sf(7.5,text,false);
+  doc.text(sa(supText)||'--',ML+11,y+12);
+
+  rrfs(ML+halfW+3,y,halfW,infoH3,2.5,bg,border,0.25);
+  rr(ML+halfW+3+3,y+3.5,5.5,5.5,1.5,navy2);
+  tx('AUSENCIAS DO DIA',ML+halfW+3+11,y+6,6,sub,true);
+  if(!nAus){
+    sf(7.5,sub,false);doc.text('Nenhuma ausencia no dia.',ML+halfW+3+11,y+12);
+  }else{
+    var ayy=y+11;
+    r.abss.forEach(function(a,i){
+      sf(7,text,false);
+      doc.text((i+1)+'. '+sa(a.name)+(a.reason?' - '+sa(a.reason):''),ML+halfW+3+11,ayy);
+      ayy+=5;
+    });
+  }
+  y+=infoH3+3;
+
+  // ════════════════════════════════════════════════════════
+  // ATIVIDADES REALIZADAS (resumo)
   // ════════════════════════════════════════════════════════
   var nActs=r.acts&&r.acts.length?r.acts.length:0;
   var actLines=[];
   if(nActs===0){actLines.push('Nenhuma atividade registrada.');}
   else{
-    r.acts.forEach(function(a,ai){
-      actLines.push((ai+1)+'. '+sa(a.desc||''));
-    });
+    r.acts.forEach(function(a,ai){actLines.push((ai+1)+'. '+sa(a.desc||''));});
   }
-  var resH=8+actLines.length*5.2;
-  rr(ML,y,W-ML-MR,7,2,navy2);
-  tx('ATIVIDADES REALIZADAS',ML+4,y+5,8.5,white,true);
-  y+=7;
+  var resH=6+actLines.length*4.6;
+  rr(ML,y,W-ML-MR,6,1.5,navy2);
+  tx('ATIVIDADES REALIZADAS',ML+3,y+4.3,7,white,true);
+  y+=6;
   rrs(ML,y,W-ML-MR,resH,0,border,0.25);
-  var ay2=y+5.5;
-  sf(8.5,text,false);
+  var ay2=y+5;
+  sf(7.5,text,false);
   actLines.forEach(function(l){
-    var ln=doc.splitTextToSize(l,W-ML-MR-8);
-    ln.forEach(function(s){doc.text(s,ML+4,ay2);ay2+=5.2;});
+    var ln=doc.splitTextToSize(l,W-ML-MR-6);
+    ln.forEach(function(s){doc.text(s,ML+3,ay2);ay2+=4.6;});
   });
-  y+=resH+5;
+  y+=resH+4;
 
   // ════════════════════════════════════════════════════════
-  // LAYOUT PRINCIPAL: coluna esquerda (atividades) + coluna direita (riscos)
+  // LAYOUT PRINCIPAL: coluna esquerda (fotos) + coluna direita
+  // (DETALHAMENTO DAS ATIVIDADES, no lugar de "Riscos Envolvidos")
   // ════════════════════════════════════════════════════════
-  var rightW=78;
-  var leftW=W-ML-MR-rightW-5;
+  var rightW=58;
+  var leftW=W-ML-MR-rightW-4;
   var contentTop=y;
-  var contentBottomLimit=H-48; // reservar espaco p/ rodape (desvios/pendencias)
+  var contentBottomLimit=H-62; // reserva espaco p/ desvios/pendencias + rodape
 
-  // ── COLUNA DIREITA: RISCOS ENVOLVIDOS (fixa) ──
-  var rx=ML+leftW+5;
+  // ── COLUNA DIREITA: DETALHAMENTO DAS ATIVIDADES ──
+  var rx=ML+leftW+4;
   var ry=contentTop;
-  rrfs(rx,ry,rightW,contentBottomLimit-contentTop,3,bg,border,0.3);
-  rr(rx,ry,rightW,9,3,navy2);
+  rrfs(rx,ry,rightW,contentBottomLimit-contentTop,2.5,bg,border,0.3);
+  rr(rx,ry,rightW,7,2.5,navy2);
   doc.setFillColor(white[0],white[1],white[2]);
-  doc.triangle(rx+5,ry+2.2,rx+2.5,ry+6.5,rx+7.5,ry+6.5,'F');
-  doc.setFillColor(navy2[0],navy2[1],navy2[2]);doc.rect(rx+4.6,ry+3.3,0.8,2,'F');doc.rect(rx+4.6,ry+5.6,0.8,0.8,'F');
-  tx('RISCOS ENVOLVIDOS',rx+10,ry+6.2,8.5,white,true);
+  doc.roundedRect(rx+3,ry+1.8,3,3.4,0.5,0.5,'F');
+  doc.setFillColor(navy2[0],navy2[1],navy2[2]);
+  doc.rect(rx+3.7,ry+2.5,0.4,1.7,'F');doc.rect(rx+4.6,ry+2.5,0.4,1.7,'F');
+  tx('DETALHAMENTO',rx+8,ry+5,7,white,true);
 
-  var risks=[
-    ['SOBREAQUECIMENTO','O acumulo de material sobre os cabos compromete a dissipacao de calor, podendo causar superaquecimento.'],
-    ['DANOS A ISOLACAO','A pressao e o atrito do material podem danificar a isolacao dos cabos.'],
-    ['CURTO-CIRCUITO / FALHA ELETRICA','A degradacao da isolacao pode resultar em falhas eletricas e interrupcao nao programada.'],
-    ['INCENDIO','Material acumulado combinado com falha eletrica aumenta significativamente o risco de incendio.'],
-    ['RISCO A INTEGRIDADE OPERACIONAL','Risco de paradas de producao, danos ao patrimonio e exposicao das pessoas a situacoes criticas.']
-  ];
-  var rry=ry+14;
-  risks.forEach(function(rk,i){
-    rr(rx+4,rry-3,5,5,1,navy2);
-    sf(7,white,true);doc.text(String(i+1),rx+6.5,rry+0.3,{align:'center'});
-    tx(rk[0],rx+11,rry,7.3,navy2,true);
-    sf(6.6,text,false);
-    var rl=doc.splitTextToSize(rk[1],rightW-15);
-    var rly=rry+4.5;
-    rl.forEach(function(ln){doc.text(ln,rx+11,rly);rly+=3.6;});
-    rry=rly+3;
-  });
+  var dry=ry+12;
+  var dRightLimit=ry+(contentBottomLimit-contentTop)-4;
+  if(r.acts&&r.acts.length){
+    r.acts.forEach(function(act,ai){
+      if(dry>dRightLimit-8)return; // sem espaco, nao desenha mais
+      rr(rx+3,dry-3.2,4.5,4.5,1,navy2);
+      sf(6.5,white,true);doc.text(String(ai+1),rx+5.25,dry+0.1,{align:'center'});
+      sf(7,navy2,true);
+      var titL=doc.splitTextToSize(sa(act.desc||'').toUpperCase(),rightW-13);
+      doc.text(titL[0]||'',rx+9,dry);
+      dry+=4.6;
+      if(titL[1]){doc.text(titL[1],rx+9,dry);dry+=4.6;}
 
-  // ── COLUNA ESQUERDA: ATIVIDADES com fotos especificas ──
+      if(act.equip){
+        sf(6,sub,true);doc.text('Equip: '+sa(act.equip),rx+9,dry);dry+=4.2;
+      }
+      if(act.cols&&act.cols.length){
+        sf(6,sub,false);
+        var colL=doc.splitTextToSize('Equipe: '+act.cols.join(', '),rightW-13);
+        colL.forEach(function(ln){
+          if(dry>dRightLimit)return;
+          doc.text(ln,rx+9,dry);dry+=4;
+        });
+      }
+      dry+=4;
+      if(dry<dRightLimit){sd(border,0.2);doc.line(rx+4,dry-2.5,rx+rightW-4,dry-2.5);}
+    });
+  } else {
+    sf(7,sub,false);doc.text('Nenhuma atividade',rx+4,dry);
+  }
+
+  // ── COLUNA ESQUERDA: FOTOS POR ATIVIDADE ──
   var cy=contentTop;
   var cx2=ML;
-
-  function getPhPDF(name){
-    if(!name||typeof TEAM_PHOTOS_PDF==='undefined')return '';
-    for(var k in TEAM_PHOTOS_PDF){
-      if(k===name)return TEAM_PHOTOS_PDF[k];
-      if(name.split(' ')[0]&&k.split(' ')[0]===name.split(' ')[0])return TEAM_PHOTOS_PDF[k];
-    }
-    return '';
-  }
 
   if(r.acts&&r.acts.length){
     for(var ai=0;ai<r.acts.length;ai++){
       var act=r.acts[ai];
-      // Cabecalho da atividade (faixa roxa solida)
-      var headH=8;
-      if(cy+headH>contentBottomLimit){break;} // protecao: nao ultrapassa area reservada
-      rr(cx2,cy,leftW,headH,2,navy2);
-      sf(8.5,white,true);
+      var headH=7;
+      if(cy+headH>contentBottomLimit){break;}
+      rr(cx2,cy,leftW,headH,1.8,navy2);
       doc.setFillColor(white[0],white[1],white[2]);
-      doc.roundedRect(cx2+3,cy+2,3.2,3.2,0.6,0.6,'F');
+      doc.roundedRect(cx2+2.5,cy+1.6,3,3.4,0.5,0.5,'F');
       doc.setFillColor(navy2[0],navy2[1],navy2[2]);
-      doc.rect(cx2+3.7,cy+2.7,0.5,1.8,'F');doc.rect(cx2+4.6,cy+2.7,0.5,1.8,'F');
-      tx('ATIVIDADE '+(ai+1)+'  |  '+sa(act.desc||'').toUpperCase(),cx2+9,cy+5.5,8.5,white,true);
-      cy+=headH+2;
+      doc.rect(cx2+3.2,cy+2.3,0.4,1.7,'F');doc.rect(cx2+4.1,cy+2.3,0.4,1.7,'F');
+      sf(7.3,white,true);
+      var headTxt='ATIVIDADE '+(ai+1)+'  |  '+sa(act.desc||'').toUpperCase();
+      var headFit=doc.splitTextToSize(headTxt,leftW-10);
+      doc.text(headFit[0],cx2+7.5,cy+4.7);
+      cy+=headH+1.5;
 
-      // Colaboradores
       var cols3=act.cols||[];
       if(cols3.length){
-        rr(cx2,cy-0.5,4,4,1,blue);
-        sf(6.5,blue,true);
-        var colTxt='COLABORADORES ENVOLVIDOS:  '+cols3.join('   |   ');
-        tx(colTxt,cx2+6,cy+2.3,7.3,blue,true);
-        cy+=7;
+        sf(6.3,blue,true);
+        var colTxt='COLABORADORES:  '+cols3.join('  |  ');
+        var colFit=doc.splitTextToSize(colTxt,leftW);
+        doc.text(colFit[0],cx2,cy+2);
+        cy+=5.5;
       }
 
-      // Registro fotografico (fotos especificas desta atividade)
       var actPhotos=act.photos&&act.photos.length?act.photos:[];
       if(actPhotos.length){
-        tx('REGISTRO FOTOGRAFICO',cx2,cy+2,6.5,sub,true);
-        cy+=5;
+        tx('REGISTRO FOTOGRAFICO',cx2,cy+2,6,sub,true);
+        cy+=4.5;
         var gap=3,iw=(leftW-gap)/2,ih=Math.round(iw*0.62);
-        if(cy+ih>contentBottomLimit){
-          // nao cabe mais nesta coluna - encerra atividades aqui
-          break;
-        }
-        for(var j=0;j<actPhotos.length && j<2;j+=2){
-          try{doc.addImage(actPhotos[j],'JPEG',cx2,cy,iw,ih);rrs(cx2,cy,iw,ih,1.5,border,0.2);}catch(e){}
-          if(actPhotos[j+1]){try{doc.addImage(actPhotos[j+1],'JPEG',cx2+iw+gap,cy,iw,ih);rrs(cx2+iw+gap,cy,iw,ih,1.5,border,0.2);}catch(e){}}
-        }
-        cy+=ih+5;
+        if(cy+ih>contentBottomLimit){break;}
+        try{doc.addImage(actPhotos[0],'JPEG',cx2,cy,iw,ih);rrs(cx2,cy,iw,ih,1.5,border,0.2);}catch(e){}
+        if(actPhotos[1]){try{doc.addImage(actPhotos[1],'JPEG',cx2+iw+gap,cy,iw,ih);rrs(cx2+iw+gap,cy,iw,ih,1.5,border,0.2);}catch(e){}}
+        cy+=ih+4;
       } else {
-        cy+=3;
+        cy+=2;
       }
     }
   }
 
   // ════════════════════════════════════════════════════════
-  // RODAPE: DESVIOS / PENDENCIAS (largura total, parte inferior)
+  // RODAPE: DESVIOS / PENDENCIAS (lado a lado)
   // ════════════════════════════════════════════════════════
   var hasD=r.devs&&r.devs.length,hasP=r.pends&&r.pends.length;
   var footY=contentBottomLimit+3;
-  var footH=30;
-  var footColW=(W-ML-MR-4)/2;
+  var footH=24;
+  var footColW=(W-ML-MR-3)/2;
 
   if(hasD){
     rrfs(ML,footY,footColW,footH,2,white,red,0.4);
-    rr(ML,footY,7,7,1.5,red);
-    sf(7,white,true);doc.text('X',ML+3.5,footY+5,{align:'center'});
-    tx('ATIVIDADES NAO REALIZADAS',ML+10,footY+5,7.5,red,true);
-    var dyy=footY+10;
+    rr(ML,footY,6,6,1.3,red);
+    sf(6,white,true);doc.text('X',ML+3,footY+4.3,{align:'center'});
+    tx('ATIVIDADES NAO REALIZADAS',ML+8,footY+4.3,6.5,red,true);
+    var dyy=footY+8.5;
     r.devs.forEach(function(d,di){
-      sf(6.5,text,true);doc.text('DESVIO '+(di+1)+':',ML+4,dyy);dyy+=4;
-      sf(7,text,false);
-      var dl=doc.splitTextToSize(sa(d),footColW-8);
-      dl.forEach(function(ln){doc.text(ln,ML+4,dyy);dyy+=4;});
-      dyy+=2;
+      sf(5.8,text,true);doc.text('DESVIO '+(di+1)+':',ML+3,dyy);dyy+=3.6;
+      sf(6.3,text,false);
+      var dl=doc.splitTextToSize(sa(d),footColW-6);
+      dl.forEach(function(ln){if(dyy<footY+footH-1){doc.text(ln,ML+3,dyy);dyy+=3.6;}});
+      dyy+=1.5;
     });
   }
 
   if(hasP){
-    var px2=ML+footColW+4;
+    var px2=ML+footColW+3;
     rrfs(px2,footY,footColW,footH,2,white,orange,0.4);
-    rr(px2,footY,7,7,1.5,orange);
-    sf(7,white,true);doc.text('!',px2+3.5,footY+5.3,{align:'center'});
-    tx('PENDENCIAS ENCONTRADAS',px2+10,footY+5,7.5,orange,true);
-    var pyy=footY+10;
+    rr(px2,footY,6,6,1.3,orange);
+    sf(6,white,true);doc.text('!',px2+3,footY+4.5,{align:'center'});
+    tx('PENDENCIAS ENCONTRADAS',px2+8,footY+4.3,6.5,orange,true);
+    var pyy=footY+8.5;
     r.pends.forEach(function(p,pi){
-      sf(6.5,text,true);doc.text('PENDENCIA '+(pi+1)+':',px2+4,pyy);pyy+=4;
-      sf(7,text,true);
-      var pl=doc.splitTextToSize(sa(p).toUpperCase(),footColW-8);
-      pl.forEach(function(ln){doc.text(ln,px2+4,pyy);pyy+=4;});
-      pyy+=2;
+      sf(5.8,text,true);doc.text('PENDENCIA '+(pi+1)+':',px2+3,pyy);pyy+=3.6;
+      sf(6.3,text,true);
+      var pl=doc.splitTextToSize(sa(p).toUpperCase(),footColW-6);
+      pl.forEach(function(ln){if(pyy<footY+footH-1){doc.text(ln,px2+3,pyy);pyy+=3.6;}});
+      pyy+=1.5;
     });
   }
 
-  var bottomY=(hasD||hasP)?footY+footH+4:footY;
-
-  // ════════════════════════════════════════════════════════
-  // FAIXA FINAL: alerta + recomendacao
-  // ════════════════════════════════════════════════════════
-  var alertH=18;
-  var alertW=(W-ML-MR)*0.62;
-  rr(ML,bottomY,alertW,alertH,2,navy2);
-  doc.setFillColor(white[0],white[1],white[2]);
-  doc.triangle(ML+8,bottomY+4,ML+5,bottomY+10,ML+11,bottomY+10,'F');
-  doc.setFillColor(navy2[0],navy2[1],navy2[2]);doc.rect(ML+7.6,bottomY+5.7,0.8,2.6,'F');doc.rect(ML+7.6,bottomY+8.8,0.8,0.8,'F');
-  sf(7.5,white,true);
-  var alertTxt='O ACUMULO DE MATERIAL SOBRE LEITOS DE CABOS DE MEDIA TENSAO REPRESENTA UM RISCO CRITICO A OPERACAO, A CONFIABILIDADE ELETRICA E A SEGURANCA DAS PESSOAS.';
-  var altLines=doc.splitTextToSize(alertTxt,alertW-20);
-  var alY=bottomY+6;
-  altLines.forEach(function(ln){doc.text(ln,ML+15,alY);alY+=4;});
-
-  var recoX=ML+alertW+4;
-  var recoW=(W-ML-MR)-alertW-4;
-  rrfs(recoX,bottomY,recoW,alertH,2,white,border,0.3);
-  rr(recoX+4,bottomY+4,5,5.5,1,navy2);
-  doc.setFillColor(white[0],white[1],white[2]);
-  doc.rect(recoX+4.8,bottomY+5,3.4,0.6,'F');doc.rect(recoX+4.8,bottomY+6.4,3.4,0.6,'F');doc.rect(recoX+4.8,bottomY+7.8,2.4,0.6,'F');
-  tx('RECOMENDACAO IMEDIATA',recoX+11,bottomY+5,7,navy2,true);
-  sf(6.8,text,false);
-  var recoTxt='Remover o material acumulado e implementar rotina preventiva de limpeza e inspecao dos leitos de cabos.';
-  var recoL=doc.splitTextToSize(recoTxt,recoW-15);
-  var recoY=bottomY+10;
-  recoL.forEach(function(ln){doc.text(ln,recoX+11,recoY);recoY+=4;});
+  var bottomY=(hasD||hasP)?footY+footH+3:footY;
 
   // ════════════════════════════════════════════════════════
   // RODAPE FINAL
   // ════════════════════════════════════════════════════════
-  var footerY=H-6;
+  var footerY=H-7;
   sd(border,0.25);doc.line(ML,footerY-4,W-MR,footerY-4);
-  sf(8,navy2,true);doc.text('CSN',ML,footerY);
-  sf(7,sub,true);doc.text('CIMENTOS',ML+8,footerY);
-  sf(7.5,sub,false);doc.text('RELATORIO TECNICO DE INSPECAO',W/2,footerY,{align:'center'});
-  sf(7.5,sub,false);doc.text('PAGINA 1 DE 1',W-MR,footerY,{align:'right'});
+  sf(7,navy2,true);doc.text('CSN',ML,footerY);
+  sf(6,sub,true);doc.text('CIMENTOS',ML+7,footerY);
+  sf(6.5,sub,false);doc.text('RELATORIO TECNICO DE INSPECAO',W/2,footerY,{align:'center'});
+  sf(6.5,sub,false);doc.text('PAGINA 1 DE 1',W-MR,footerY,{align:'right'});
 
   var fn=(r.proto?r.proto:'Relatorio_CSN_'+(r.date||'sem-data').replace(/[/]/g,'-'))+'.pdf';
   var bl=doc.output('blob');
@@ -3434,6 +3402,7 @@ async function generatePDFFromReport(r,photos){
   }else{doc.save(fn);toast('PDF salvo!');}
   }catch(pdfErr){console.error('PDF erro:',pdfErr);toast('Erro PDF: '+(pdfErr.message||String(pdfErr)).substring(0,50));}
 }
+
 
 
 
