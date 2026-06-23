@@ -1531,8 +1531,8 @@ CREATE POLICY "Acesso publico" ON relatorios FOR ALL USING (true);</pre>
       </div>
       <div class="force-rev-row"><div class="force-rev-lbl">Solicitante</div><div class="force-rev-val" id="aprov-solicit">—</div></div>
       <div class="force-rev-row"><div class="force-rev-lbl">Tag</div><div class="force-rev-val" id="aprov-tag" style="font-family:monospace;color:var(--blue);">—</div></div>
-      <div class="force-rev-row"><div class="force-rev-lbl">Sistema</div><div class="force-rev-val" id="aprov-sistema">—</div></div>
-      <div class="force-rev-row"><div class="force-rev-lbl">Valor Force</div><div class="force-rev-val" id="aprov-valor">—</div></div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Equipamento</div><div class="force-rev-val" id="aprov-sistema">—</div></div>
+      <div class="force-rev-row"><div class="force-rev-lbl">Processo</div><div class="force-rev-val" id="aprov-valor">—</div></div>
       <div class="force-rev-row" style="flex-direction:column;gap:4px;">
         <div class="force-rev-lbl">Motivo</div>
         <div class="force-rev-val" id="aprov-motivo" style="font-style:italic;">—</div>
@@ -1614,7 +1614,9 @@ CREATE POLICY "Acesso publico" ON relatorios FOR ALL USING (true);</pre>
     <div id="detail-enc-btn-wrap" style="display:none;margin-bottom:12px;">
       <button onclick="encerrarForce()" style="width:100%;padding:14px;background:#607D8B;border:none;border-radius:14px;color:#fff;font-size:.9rem;font-weight:700;cursor:pointer;">🛑 Encerrar Force (Retirada Confirmada)</button>
     </div>
-  
+  </div>
+</div>
+
 <!-- ══ TELA: CONCLUSÃO TÉCNICA DO FORCE ══ -->
 <div class="screen" id="scr-force-tecnico">
   <div class="topbar">
@@ -1676,8 +1678,6 @@ CREATE POLICY "Acesso publico" ON relatorios FOR ALL USING (true);</pre>
       ✅ Concluir Solicitação
     </button>
   </div>
-</div>
-</div>
 </div>
 </div><!-- #app -->
 <div id="toast"></div>
@@ -3109,291 +3109,373 @@ async function makePDF(){
 async function generatePDFFromReport(r,photos){
   if(!r){toast('Erro: dados do relatorio nao encontrados');return;}
   if(!window.jspdf){
-    toast('jsPDF nao carregado - tentando carregar...');
+    toast('jsPDF nao carregado...');
     await new Promise(function(res){
       var s=document.createElement('script');
       s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-      s.onload=res;s.onerror=res;
-      document.head.appendChild(s);
-      setTimeout(res,5000);
+      s.onload=res;s.onerror=res;document.head.appendChild(s);setTimeout(res,5000);
     });
     if(!window.jspdf){toast('Erro: jsPDF indisponivel');return;}
   }
   try{
   var jsPDF=window.jspdf.jsPDF;
   var doc=new jsPDF({orientation:'p',unit:'mm',format:'a4'});
-  var W=210,H=297,ML=10,MR=10,MT=10;
+  var W=210,H=297,ML=12,MR=12,MT=12,MB=14;
+  var CW=W-ML-MR;
   var navy=[58,18,97],navy2=[76,29,149],blue=[109,40,217],white=[255,255,255];
-  var bg=[247,248,252],bgCard=[235,242,255],border=[225,225,235];
-  var text=[20,20,30],sub=[90,100,120],dim=[150,160,180];
-  var red=[200,30,30],orange=[230,126,34];
+  var bg=[247,248,252],border=[210,215,230],text=[20,20,30],sub=[90,100,120],dim=[160,170,185];
+  var red=[200,30,30],orange=[200,110,20];
 
   function sf(sz,c,b){doc.setFontSize(sz);doc.setTextColor(c[0],c[1],c[2]);doc.setFont('helvetica',b?'bold':'normal');}
   function sd(c,lw){doc.setDrawColor(c[0],c[1],c[2]);doc.setLineWidth(lw||0.3);}
+  function fr(x,y,w,h,c){doc.setFillColor(c[0],c[1],c[2]);doc.rect(x,y,w,h,'F');}
   function rr(x,y,w,h,rd,c){doc.setFillColor(c[0],c[1],c[2]);doc.roundedRect(x,y,w,h,rd,rd,'F');}
   function rrs(x,y,w,h,rd,c,lw){sd(c,lw||0.3);doc.roundedRect(x,y,w,h,rd,rd,'S');}
-  function rrfs(x,y,w,h,rd,fc,sc,lw){rr(x,y,w,h,rd,fc);rrs(x,y,w,h,rd,sc,lw);}
-  function tx(str,x,y,sz,c,b,opt){sf(sz,c,b);doc.text(sa(String(str||'')),x,y,opt);}
-  function rect(x,y,w,h,c){doc.setFillColor(c[0],c[1],c[2]);doc.rect(x,y,w,h,'F');}
+  function rrfs(x,y,w,h,rd,fc,sc,lw){rr(x,y,w,h,rd,fc);rrs(x,y,w,h,rd,sc,lw||0.25);}
+  function tx(str,x,y,sz,c,b,opt){sf(sz,c,b);doc.text(sa(String(str||'')),x,y,opt||{});}
 
-  rect(0,0,W,H,white);
-
-  // ════════════════════════════════════════════════════════
-  // CABECALHO
-  // ════════════════════════════════════════════════════════
   var y=MT;
-  sf(20,navy,true);doc.text('RELATORIO DE ATIVIDADES',ML,y+7);
-  sf(9,blue,true);doc.text('EQUIPE DE MANUTENCAO',ML,y+12.5);
-  sf(15,navy,true);doc.text('CSN',W-MR,y+7,{align:'right'});
-  sf(7.5,blue,true);doc.text('CIMENTOS',W-MR,y+12,{align:'right'});
-  y+=16;
-  sd(border,0.4);doc.line(ML,y,W-MR,y);
-  y+=4;
 
-  // ════════════════════════════════════════════════════════
-  // FAIXA 1: Data / Responsavel / Empresa / Equipe
-  // ════════════════════════════════════════════════════════
-  var infoH=15;
-  rrfs(ML,y,W-ML-MR,infoH,2.5,bg,border,0.25);
-  var colW=(W-ML-MR)/4;
-  var infoCols=[
-    ['DATA', r.date||'--'],
-    ['RESPONSAVEL', (r.resp||'--')],
-    ['EMPRESA','CSN Cimentos'],
-    ['EQUIPE','Manutencao']
-  ];
-  infoCols.forEach(function(c,i){
-    var cx=ML+i*colW+5;
-    rr(cx-3,y+3.5,6,6,1.5,navy2);
-    tx(c[0],cx+5,y+6,6,sub,true);
-    var ln=doc.splitTextToSize(String(c[1]),colW-9);
-    tx(ln[0],cx+5,y+11,7.8,text,true);
-    if(i<3){sd(border,0.2);doc.line(ML+(i+1)*colW,y+2.5,ML+(i+1)*colW,y+infoH-2.5);}
-  });
-  y+=infoH+3;
+  // ───────────────────────────────────────────────────────
+  // CABECALHO (repete em cada nova pagina)
+  // ───────────────────────────────────────────────────────
+  function drawHeader(){
+    // Faixa roxa topo
+    fr(0,0,W,5,navy2);
+    // Linha decorativa
+    sd(border,0.3);doc.line(ML,7,W-MR,7);
 
-  // ════════════════════════════════════════════════════════
-  // FAIXA 2: Tipo / Equipamento / Classificacao / Mao de obra / Ordens
-  // ════════════════════════════════════════════════════════
-  var infoH2=15;
-  rrfs(ML,y,W-ML-MR,infoH2,2.5,bg,border,0.25);
-  var colW2=(W-ML-MR)/5;
-  var infoCols2=[
-    ['TIPO DE ATIVIDADE', r.tipo||'--'],
-    ['EQUIPAMENTO/AREA', r.equip||'--'],
-    ['CLASSIFICACAO', r.tipo||'--'],
-    ['MAO DE OBRA', r.hh?sa(r.hh):'--'],
-    ['ORDENS OM', r.om?sa(r.om):'--']
-  ];
-  infoCols2.forEach(function(c,i){
-    var cx=ML+i*colW2+4.5;
-    rr(cx-3,y+3.5,5.5,5.5,1.5,navy2);
-    tx(c[0],cx+4.5,y+6,5.3,sub,true);
-    var ln=doc.splitTextToSize(String(c[1]),colW2-7.5);
-    tx(ln[0],cx+4.5,y+11,7,text,true);
-    if(i<4){sd(border,0.2);doc.line(ML+(i+1)*colW2,y+2.5,ML+(i+1)*colW2,y+infoH2-2.5);}
-  });
-  y+=infoH2+3;
+    // Titulo esquerda
+    sf(17,navy,true);doc.text('RELATORIO DE ATIVIDADES',ML,14);
+    sf(8,blue,true);doc.text('CSN CIMENTOS — EQUIPE DE MANUTENCAO',ML,19);
 
-  // ════════════════════════════════════════════════════════
-  // FAIXA 3: Supervisores/DDS + Ausencias
-  // ════════════════════════════════════════════════════════
-  var nAus=r.abss&&r.abss.length?r.abss.length:0;
-  var infoH3=Math.max(15,8+nAus*5);
-  var halfW=(W-ML-MR-3)/2;
-  rrfs(ML,y,halfW,infoH3,2.5,bg,border,0.25);
-  rr(ML+3,y+3.5,5.5,5.5,1.5,navy2);
-  sf(6,sub,true);
-  var supL=doc.splitTextToSize('SUPERVISORES / LIDER TEMA DO DDS',halfW-13);
-  doc.text(supL,ML+11,y+6);
-  var supText=(r.supervisores&&r.supervisores.length?r.supervisores.join(', '):(r.supervisor||'--'));
-  sf(7.5,text,false);
-  doc.text(sa(supText)||'--',ML+11,y+12);
+    // CSN logo direita
+    sf(14,navy,true);doc.text('CSN',W-MR,13,{align:'right'});
+    sf(7,blue,true);doc.text('CIMENTOS',W-MR,18,{align:'right'});
 
-  rrfs(ML+halfW+3,y,halfW,infoH3,2.5,bg,border,0.25);
-  rr(ML+halfW+3+3,y+3.5,5.5,5.5,1.5,navy2);
-  tx('AUSENCIAS DO DIA',ML+halfW+3+11,y+6,6,sub,true);
-  if(!nAus){
-    sf(7.5,sub,false);doc.text('Nenhuma ausencia no dia.',ML+halfW+3+11,y+12);
-  }else{
-    var ayy=y+11;
-    r.abss.forEach(function(a,i){
-      sf(7,text,false);
-      doc.text((i+1)+'. '+sa(a.name)+(a.reason?' - '+sa(a.reason):''),ML+halfW+3+11,ayy);
-      ayy+=5;
-    });
-  }
-  y+=infoH3+3;
-
-  // ════════════════════════════════════════════════════════
-  // ATIVIDADES REALIZADAS (resumo)
-  // ════════════════════════════════════════════════════════
-  var nActs=r.acts&&r.acts.length?r.acts.length:0;
-  var actLines=[];
-  if(nActs===0){actLines.push('Nenhuma atividade registrada.');}
-  else{
-    r.acts.forEach(function(a,ai){actLines.push((ai+1)+'. '+sa(a.desc||''));});
-  }
-  var resH=6+actLines.length*4.6;
-  rr(ML,y,W-ML-MR,6,1.5,navy2);
-  tx('ATIVIDADES REALIZADAS',ML+3,y+4.3,7,white,true);
-  y+=6;
-  rrs(ML,y,W-ML-MR,resH,0,border,0.25);
-  var ay2=y+5;
-  sf(7.5,text,false);
-  actLines.forEach(function(l){
-    var ln=doc.splitTextToSize(l,W-ML-MR-6);
-    ln.forEach(function(s){doc.text(s,ML+3,ay2);ay2+=4.6;});
-  });
-  y+=resH+4;
-
-  // ════════════════════════════════════════════════════════
-  // LAYOUT PRINCIPAL: coluna esquerda (fotos) + coluna direita
-  // (DETALHAMENTO DAS ATIVIDADES, no lugar de "Riscos Envolvidos")
-  // ════════════════════════════════════════════════════════
-  var rightW=58;
-  var leftW=W-ML-MR-rightW-4;
-  var contentTop=y;
-  var contentBottomLimit=H-62; // reserva espaco p/ desvios/pendencias + rodape
-
-  // ── COLUNA DIREITA: DETALHAMENTO DAS ATIVIDADES ──
-  var rx=ML+leftW+4;
-  var ry=contentTop;
-  rrfs(rx,ry,rightW,contentBottomLimit-contentTop,2.5,bg,border,0.3);
-  rr(rx,ry,rightW,7,2.5,navy2);
-  doc.setFillColor(white[0],white[1],white[2]);
-  doc.roundedRect(rx+3,ry+1.8,3,3.4,0.5,0.5,'F');
-  doc.setFillColor(navy2[0],navy2[1],navy2[2]);
-  doc.rect(rx+3.7,ry+2.5,0.4,1.7,'F');doc.rect(rx+4.6,ry+2.5,0.4,1.7,'F');
-  tx('DETALHAMENTO',rx+8,ry+5,7,white,true);
-
-  var dry=ry+12;
-  var dRightLimit=ry+(contentBottomLimit-contentTop)-4;
-  if(r.acts&&r.acts.length){
-    r.acts.forEach(function(act,ai){
-      if(dry>dRightLimit-8)return; // sem espaco, nao desenha mais
-      rr(rx+3,dry-3.2,4.5,4.5,1,navy2);
-      sf(6.5,white,true);doc.text(String(ai+1),rx+5.25,dry+0.1,{align:'center'});
-      sf(7,navy2,true);
-      var titL=doc.splitTextToSize(sa(act.desc||'').toUpperCase(),rightW-13);
-      doc.text(titL[0]||'',rx+9,dry);
-      dry+=4.6;
-      if(titL[1]){doc.text(titL[1],rx+9,dry);dry+=4.6;}
-
-      if(act.equip){
-        sf(6,sub,true);doc.text('Equip: '+sa(act.equip),rx+9,dry);dry+=4.2;
-      }
-      if(act.cols&&act.cols.length){
-        sf(6,sub,false);
-        var colL=doc.splitTextToSize('Equipe: '+act.cols.join(', '),rightW-13);
-        colL.forEach(function(ln){
-          if(dry>dRightLimit)return;
-          doc.text(ln,rx+9,dry);dry+=4;
-        });
-      }
-      dry+=4;
-      if(dry<dRightLimit){sd(border,0.2);doc.line(rx+4,dry-2.5,rx+rightW-4,dry-2.5);}
-    });
-  } else {
-    sf(7,sub,false);doc.text('Nenhuma atividade',rx+4,dry);
+    sd(border,0.5);doc.line(ML,21,W-MR,21);
   }
 
-  // ── COLUNA ESQUERDA: FOTOS POR ATIVIDADE ──
-  var cy=contentTop;
-  var cx2=ML;
+  // ───────────────────────────────────────────────────────
+  // RODAPE (numero de pagina corrigido depois)
+  // ───────────────────────────────────────────────────────
+  function drawFooter(){
+    sd(border,0.3);doc.line(ML,H-MB,W-MR,H-MB);
+    sf(7.5,dim,false);
+    doc.text('CSN CIMENTOS - EQUIPE DE MANUTENCAO',ML,H-MB+4.5);
+    doc.text(sa(r.date||''),W/2,H-MB+4.5,{align:'center'});
+    fr(W-MR-16,H-MB+1,16,7,navy2);
+    sf(7,white,true);doc.text('PG',W-MR-8,H-MB+5.5,{align:'center'});
+  }
 
-  if(r.acts&&r.acts.length){
-    for(var ai=0;ai<r.acts.length;ai++){
-      var act=r.acts[ai];
-      var headH=7;
-      if(cy+headH>contentBottomLimit){break;}
-      rr(cx2,cy,leftW,headH,1.8,navy2);
-      doc.setFillColor(white[0],white[1],white[2]);
-      doc.roundedRect(cx2+2.5,cy+1.6,3,3.4,0.5,0.5,'F');
-      doc.setFillColor(navy2[0],navy2[1],navy2[2]);
-      doc.rect(cx2+3.2,cy+2.3,0.4,1.7,'F');doc.rect(cx2+4.1,cy+2.3,0.4,1.7,'F');
-      sf(7.3,white,true);
-      var headTxt='ATIVIDADE '+(ai+1)+'  |  '+sa(act.desc||'').toUpperCase();
-      var headFit=doc.splitTextToSize(headTxt,leftW-10);
-      doc.text(headFit[0],cx2+7.5,cy+4.7);
-      cy+=headH+1.5;
+  // ───────────────────────────────────────────────────────
+  // CONTROLE DE PAGINA
+  // ───────────────────────────────────────────────────────
+  function newPage(){
+    drawFooter();
+    doc.addPage();
+    drawHeader();
+    y=25;
+  }
 
-      var cols3=act.cols||[];
-      if(cols3.length){
-        sf(6.3,blue,true);
-        var colTxt='COLABORADORES:  '+cols3.join('  |  ');
-        var colFit=doc.splitTextToSize(colTxt,leftW);
-        doc.text(colFit[0],cx2,cy+2);
-        cy+=5.5;
-      }
+  function chk(need){
+    if(y+need>H-MB-6){newPage();}
+  }
 
-      var actPhotos=act.photos&&act.photos.length?act.photos:[];
-      if(actPhotos.length){
-        tx('REGISTRO FOTOGRAFICO',cx2,cy+2,6,sub,true);
-        cy+=4.5;
-        var gap=3,iw=(leftW-gap)/2,ih=Math.round(iw*0.62);
-        if(cy+ih>contentBottomLimit){break;}
-        try{doc.addImage(actPhotos[0],'JPEG',cx2,cy,iw,ih);rrs(cx2,cy,iw,ih,1.5,border,0.2);}catch(e){}
-        if(actPhotos[1]){try{doc.addImage(actPhotos[1],'JPEG',cx2+iw+gap,cy,iw,ih);rrs(cx2+iw+gap,cy,iw,ih,1.5,border,0.2);}catch(e){}}
-        cy+=ih+4;
-      } else {
-        cy+=2;
-      }
+  // ───────────────────────────────────────────────────────
+  // FOTO CIRCULAR DO RESPONSAVEL
+  // ───────────────────────────────────────────────────────
+  var sp=null;
+  try{sp=localStorage.getItem('p-photo')||localStorage.getItem('rp1');}catch(e){}
+  var rPh=null;
+  if(sp){
+    try{
+      var cv=document.createElement('canvas');cv.width=100;cv.height=100;
+      var ctx=cv.getContext('2d');
+      ctx.fillStyle='#4c1d95';ctx.fillRect(0,0,100,100);
+      var im=new Image();
+      await new Promise(function(res){im.onload=res;im.onerror=res;im.src=sp;});
+      ctx.save();ctx.beginPath();ctx.arc(50,50,47,0,Math.PI*2);ctx.closePath();ctx.clip();
+      ctx.drawImage(im,0,0,100,100);ctx.restore();
+      rPh=cv.toDataURL('image/jpeg',0.8);
+    }catch(e){}
+  }
+
+  // ───────────────────────────────────────────────────────
+  // FOTOS CIRCULARES DOS COLABORADORES
+  // ───────────────────────────────────────────────────────
+  function getPhPDF(name){
+    if(!name||typeof TEAM_PHOTOS_PDF==='undefined')return '';
+    for(var k in TEAM_PHOTOS_PDF){
+      if(k===name)return TEAM_PHOTOS_PDF[k];
+      if(name.split(' ')[0]&&k.split(' ')[0]===name.toUpperCase().split(' ')[0])return TEAM_PHOTOS_PDF[k];
+      if(name.toUpperCase()===k)return TEAM_PHOTOS_PDF[k];
     }
+    return '';
+  }
+  async function mkCirc(src){
+    var cv=document.createElement('canvas');cv.width=80;cv.height=80;
+    var ctx=cv.getContext('2d');
+    ctx.fillStyle='#e8eef8';ctx.fillRect(0,0,80,80);
+    var im=new Image();
+    await new Promise(function(res){im.onload=res;im.onerror=res;im.src=src;});
+    ctx.save();ctx.beginPath();ctx.arc(40,40,38,0,Math.PI*2);ctx.closePath();ctx.clip();
+    ctx.drawImage(im,0,0,80,80);ctx.restore();
+    return cv.toDataURL('image/jpeg',0.85);
+  }
+  var cPh={};
+  var allNames=[];
+  if(r.acts)r.acts.forEach(function(a){(a.cols||[]).forEach(function(n){if(n&&allNames.indexOf(n)<0)allNames.push(n);});});
+  if(r.abss)r.abss.forEach(function(a){if(a.name&&allNames.indexOf(a.name)<0)allNames.push(a.name);});
+  for(var ni=0;ni<allNames.length;ni++){
+    var ph0=getPhPDF(allNames[ni]);
+    if(ph0){try{cPh[allNames[ni]]=await mkCirc(ph0);}catch(e){}}
   }
 
   // ════════════════════════════════════════════════════════
-  // RODAPE: DESVIOS / PENDENCIAS (lado a lado)
+  // PAGINA 1 — RESUMO
+  // ════════════════════════════════════════════════════════
+  drawHeader();
+  y=25;
+
+  // Card do responsavel
+  var cH=36,cW=CW*0.44;
+  rrfs(ML,y,cW,cH,3,navy2,navy2);
+  var pSz=26,pX=ML+3.5,pY=y+5;
+  if(rPh){try{doc.addImage(rPh,'JPEG',pX,pY,pSz,pSz);}catch(e){}}
+  else{rr(pX,pY,pSz,pSz,11,bg);sf(12,blue,true);doc.text('?',pX+pSz/2,pY+pSz/2+2,{align:'center'});}
+  tx('RESPONSAVEL',ML+pSz+6,y+10,6,[190,210,255],false);
+  tx(r.resp||'--',ML+pSz+6,y+18,11.5,white,true);
+  tx(r.cargo||'',ML+pSz+6,y+24,8,[170,195,245],false);
+
+  // Boxes Empresa / Equipe / MAO / Ordens
+  var bx=ML+cW+4,bTW=CW-cW-4,bW=(bTW-3)/2,bH=16,bG=3;
+  [[0,0,'EMPRESA','CSN Cimentos'],[bW+bG,0,'EQUIPE','Manutencao'],
+   [0,bH+bG,'MAO DE OBRA',r.hh?sa(r.hh)+' colaboradores':'--'],
+   [bW+bG,bH+bG,'ORDENS OM',r.om?sa(r.om):'--']].forEach(function(row){
+    rrfs(bx+row[0],y+row[1],bW,bH,2.5,white,border);
+    tx(row[2],bx+row[0]+3,y+row[1]+6,6,sub,true);
+    tx(row[3],bx+row[0]+3,y+row[1]+13,9.5,text,true);
+  });
+  y+=cH+4;
+
+  // Supervisores + DDS
+  var BH=22,GAP=3,hw=(CW-GAP)/2;
+  rrfs(ML,y,hw,BH,2,white,border);
+  tx('SUPERVISORES / LIDER',ML+4,y+7,7,blue,true);
+  sf(8,text,false);
+  var supTxt=(r.supervisores&&r.supervisores.length?r.supervisores.join(' / '):(r.supervisor||''));
+  var liderTxt=r.lider?'Lider: '+sa(r.lider):'';
+  doc.text(supTxt?doc.splitTextToSize(supTxt,hw-8)[0]:'--',ML+4,y+14);
+  if(liderTxt){sf(7.5,sub,false);doc.text(liderTxt,ML+4,y+20);}
+
+  rrfs(ML+hw+GAP,y,hw,BH,2,white,border);
+  tx('TEMA DO DDS',ML+hw+GAP+4,y+7,7,blue,true);
+  sf(8,text,false);
+  var ddsL=doc.splitTextToSize(sa(r.dds||'--'),hw-8);
+  doc.text(ddsL[0]||'--',ML+hw+GAP+4,y+14);
+  if(ddsL[1]){doc.text(ddsL[1],ML+hw+GAP+4,y+20);}
+  y+=BH+GAP;
+
+  // Tipo atividade
+  rrfs(ML,y,CW,BH,2,white,border);
+  fr(ML,y,10,BH,navy2);
+  tx('TIPO DE ATIVIDADE',ML+13,y+7,7,navy,true);
+  tx('CLASSIFICACAO',ML+13,y+14,6,sub,true);tx(r.tipo||'--',ML+13,y+20,8.5,text,false);
+  tx('EQUIPAMENTO / AREA',ML+CW*0.48,y+14,6,sub,true);tx(r.equip?sa(r.equip):'--',ML+CW*0.48,y+20,8.5,text,false);
+  y+=BH+GAP;
+
+  // Ausencias
+  var nAus=r.abss&&r.abss.length?r.abss.length:0;
+  var ausH=Math.max(BH,14+nAus*9);
+  rrfs(ML,y,CW,ausH,2,white,border);
+  fr(ML,y,10,ausH,navy2);
+  tx('AUSENCIAS DO DIA',ML+13,y+7,7,navy,true);
+  if(!nAus){tx('Nenhuma ausencia no dia.',ML+13,y+16,8,sub,false);}
+  else{
+    var ayy=y+14;
+    r.abss.forEach(function(a,i){
+      var aph=cPh[a.name];
+      if(aph){try{doc.addImage(aph,'JPEG',ML+13,ayy-4,7,7);}catch(e){}}
+      tx((i+1)+'. '+sa(a.name)+(a.reason?' - '+sa(a.reason):''),ML+(aph?22:13),ayy,8,text,false);
+      ayy+=9;
+    });
+  }
+  y+=ausH+GAP;
+
+  // Atividades realizadas (lista resumo)
+  var nActs=r.acts&&r.acts.length?r.acts.length:0;
+  var actSummary=[];
+  (r.acts||[]).forEach(function(a,ai){
+    var lines=doc.splitTextToSize((ai+1)+'. '+sa(a.desc||''),CW-8);
+    lines.forEach(function(l){actSummary.push(l);});
+  });
+  if(!actSummary.length)actSummary.push('Nenhuma atividade registrada.');
+  var actResH=11+actSummary.length*6;
+  rrfs(ML,y,CW,actResH,2,white,border);
+  fr(ML,y,10,actResH,navy2);
+  rr(ML+2,y+2,6,6,1.5,white);
+  fr(ML+3.5,y+3.5,3,3.8,navy2);
+  tx('ATIVIDADES REALIZADAS',ML+13,y+7,8,navy,true);
+  sf(8.5,text,false);
+  var ay3=y+13;
+  actSummary.forEach(function(l){doc.text(l,ML+13,ay3);ay3+=6;});
+  y+=actResH+4;
+
+  drawFooter();
+
+  // ════════════════════════════════════════════════════════
+  // PAGINAS DE ATIVIDADE — retrato com coluna lateral de
+  // DETALHAMENTO (esquerda estreita) + fotos (direita)
+  // ════════════════════════════════════════════════════════
+  var detW=62;  // largura da coluna de detalhamento
+  var fotoW=CW-detW-4; // largura da area de fotos
+
+  (r.acts||[]).forEach(function(act,ai){
+    // Cada atividade comeca em pagina nova
+    doc.addPage();
+    drawHeader();
+    y=25;
+
+    // ── Cabecalho da atividade (faixa roxa) ──
+    rr(ML,y,CW,10,2,navy2);
+    rr(ML,y,12,10,2,white);
+    rr(ML+1,y+1,10,8,2,navy2);
+    sf(10,white,true);doc.text(String(ai+1),ML+6,y+7,{align:'center'});
+    sf(10,white,true);doc.text('ATIVIDADE '+(ai+1),ML+16,y+7);
+    sf(8.5,[200,200,255],false);
+    var shortDesc=sa(act.desc||'').toUpperCase();
+    var shortFit=doc.splitTextToSize(shortDesc,CW-70);
+    doc.text(shortFit[0]||'',ML+60,y+7);
+    y+=13;
+
+    // ── COLUNA ESQUERDA: DETALHAMENTO ──
+    var detX=ML;
+    var detTopY=y;
+
+    // ── COLUNA DIREITA: FOTOS ──
+    var fotX=ML+detW+4;
+    var fotY=y;
+
+    // --- Desenha coluna de detalhamento (fundo suave) ---
+    // Sera desenhada depois de calcular a altura total da coluna direita
+    // Por ora vamos montar o conteudo da coluna direita (fotos)
+
+    var fotoEndY=fotY;
+
+    // Colaboradores — avatares circulares
+    var cols3=act.cols||[];
+    if(cols3.length){
+      tx('COLABORADORES ENVOLVIDOS',fotX,fotoEndY+2,8.5,blue,true);
+      fotoEndY+=3;
+      sd(border,0.25);doc.line(fotX,fotoEndY,fotX+fotoW,fotoEndY);
+      fotoEndY+=7;
+      var avSz=20,avGap=5,cx3=fotX;
+      cols3.forEach(function(colName){
+        var cellW=avSz+8;
+        if(cx3+cellW>fotX+fotoW){cx3=fotX;fotoEndY+=avSz+12;}
+        chk(0); // nao quebra pagina no meio do card de atividade
+        var ph3=cPh[colName];
+        if(ph3){try{doc.addImage(ph3,'JPEG',cx3,fotoEndY,avSz,avSz);}catch(e){ph3=null;}}
+        if(!ph3){
+          rr(cx3,fotoEndY,avSz,avSz,avSz/2,bg);
+          rrs(cx3,fotoEndY,avSz,avSz,avSz/2,border,0.2);
+          var ini=colName.split(' ').slice(0,2).map(function(w){return w[0]||'';}).join('');
+          sf(7,blue,true);doc.text(ini,cx3+avSz/2,fotoEndY+avSz/2+2,{align:'center'});
+        }
+        var pts=colName.split(' ');
+        var sn=pts[0]+(pts.length>1?' '+pts[pts.length-1]:'');
+        sf(6,text,false);doc.text(sa(sn),cx3+avSz/2,fotoEndY+avSz+4,{align:'center',maxWidth:cellW+4});
+        cx3+=cellW;
+      });
+      fotoEndY+=avSz+11;
+    }
+
+    // Fotos da atividade
+    var actPhotos=act.photos&&act.photos.length?act.photos:[];
+    if(actPhotos.length){
+      tx('REGISTRO FOTOGRAFICO',fotX,fotoEndY+2,8.5,blue,true);
+      fotoEndY+=3;
+      sd(border,0.25);doc.line(fotX,fotoEndY,fotX+fotoW,fotoEndY);
+      fotoEndY+=6;
+      var gap=3,iw=(fotoW-gap)/2,ih=Math.round(iw*0.65);
+      for(var j=0;j<actPhotos.length;j+=2){
+        // Se nao couber mais na pagina, quebra
+        if(fotoEndY+ih>H-MB-8){
+          // Preenche coluna esquerda ate onde chegamos
+          drawDetColumn(detX,detTopY,detW,fotoEndY-detTopY,act,ai);
+          drawFooter();
+          doc.addPage();drawHeader();
+          y=25;detTopY=y;fotY=y;fotoEndY=y;fotX=ML+detW+4;
+        }
+        try{doc.addImage(actPhotos[j],'JPEG',fotX,fotoEndY,iw,ih);rrs(fotX,fotoEndY,iw,ih,1.5,border,0.2);}catch(e){}
+        if(actPhotos[j+1]){try{doc.addImage(actPhotos[j+1],'JPEG',fotX+iw+gap,fotoEndY,iw,ih);rrs(fotX+iw+gap,fotoEndY,iw,ih,1.5,border,0.2);}catch(e){}}
+        fotoEndY+=ih+4;
+      }
+      fotoEndY+=2;
+    }
+
+    var colH=Math.max(fotoEndY-detTopY,40);
+    drawDetColumn(detX,detTopY,detW,colH,act,ai);
+
+    y=Math.max(fotoEndY,detTopY+colH)+4;
+    drawFooter();
+  });
+
+  // ════════════════════════════════════════════════════════
+  // PAGINA DESVIOS / PENDENCIAS (se houver)
   // ════════════════════════════════════════════════════════
   var hasD=r.devs&&r.devs.length,hasP=r.pends&&r.pends.length;
-  var footY=contentBottomLimit+3;
-  var footH=24;
-  var footColW=(W-ML-MR-3)/2;
+  if(hasD||hasP){
+    doc.addPage();drawHeader();y=25;
 
-  if(hasD){
-    rrfs(ML,footY,footColW,footH,2,white,red,0.4);
-    rr(ML,footY,6,6,1.3,red);
-    sf(6,white,true);doc.text('X',ML+3,footY+4.3,{align:'center'});
-    tx('ATIVIDADES NAO REALIZADAS',ML+8,footY+4.3,6.5,red,true);
-    var dyy=footY+8.5;
-    r.devs.forEach(function(d,di){
-      sf(5.8,text,true);doc.text('DESVIO '+(di+1)+':',ML+3,dyy);dyy+=3.6;
-      sf(6.3,text,false);
-      var dl=doc.splitTextToSize(sa(d),footColW-6);
-      dl.forEach(function(ln){if(dyy<footY+footH-1){doc.text(ln,ML+3,dyy);dyy+=3.6;}});
-      dyy+=1.5;
-    });
+    if(hasD){
+      chk(16);
+      rrfs(ML,y,CW,11,2,white,red,0.5);
+      fr(ML,y,10,11,red);
+      sf(9,white,true);doc.text('!',ML+5,y+7.5,{align:'center'});
+      tx('ATIVIDADES NAO REALIZADAS',ML+14,y+7.5,9,red,true);
+      y+=14;
+      r.devs.forEach(function(d,di){
+        chk(14);
+        tx('Desvio '+(di+1)+':',ML+3,y,8.5,text,true);y+=5.5;
+        sf(8.5,text,false);
+        doc.splitTextToSize(sa(d),CW-6).forEach(function(ln){chk(5.5);doc.text(ln,ML+3,y);y+=5.5;});
+        y+=3;
+      });
+      y+=3;
+    }
+
+    if(hasP){
+      chk(16);
+      rrfs(ML,y,CW,11,2,white,orange,0.5);
+      fr(ML,y,10,11,orange);
+      sf(9,white,true);doc.text('P',ML+5,y+7.5,{align:'center'});
+      tx('PENDENCIAS ENCONTRADAS',ML+14,y+7.5,9,orange,true);
+      y+=14;
+      r.pends.forEach(function(p,pi){
+        chk(14);
+        tx('Pendencia '+(pi+1)+':',ML+3,y,8.5,text,true);y+=5.5;
+        sf(8.5,text,true);
+        doc.splitTextToSize(sa(p).toUpperCase(),CW-6).forEach(function(ln){chk(5.5);doc.text(ln,ML+3,y);y+=5.5;});
+        y+=3;
+      });
+    }
+
+    drawFooter();
   }
 
-  if(hasP){
-    var px2=ML+footColW+3;
-    rrfs(px2,footY,footColW,footH,2,white,orange,0.4);
-    rr(px2,footY,6,6,1.3,orange);
-    sf(6,white,true);doc.text('!',px2+3,footY+4.5,{align:'center'});
-    tx('PENDENCIAS ENCONTRADAS',px2+8,footY+4.3,6.5,orange,true);
-    var pyy=footY+8.5;
-    r.pends.forEach(function(p,pi){
-      sf(5.8,text,true);doc.text('PENDENCIA '+(pi+1)+':',px2+3,pyy);pyy+=3.6;
-      sf(6.3,text,true);
-      var pl=doc.splitTextToSize(sa(p).toUpperCase(),footColW-6);
-      pl.forEach(function(ln){if(pyy<footY+footH-1){doc.text(ln,px2+3,pyy);pyy+=3.6;}});
-      pyy+=1.5;
-    });
+  // ════════════════════════════════════════════════════════
+  // CORRIGE NUMERACAO DAS PAGINAS
+  // ════════════════════════════════════════════════════════
+  var tot=doc.getNumberOfPages();
+  for(var pg=1;pg<=tot;pg++){
+    doc.setPage(pg);
+    fr(W-MR-16,H-MB+1,16,7,navy2);
+    sf(7,white,true);doc.text(pg+'/'+tot,W-MR-8,H-MB+5.5,{align:'center'});
   }
 
-  var bottomY=(hasD||hasP)?footY+footH+3:footY;
-
-  // ════════════════════════════════════════════════════════
-  // RODAPE FINAL
-  // ════════════════════════════════════════════════════════
-  var footerY=H-7;
-  sd(border,0.25);doc.line(ML,footerY-4,W-MR,footerY-4);
-  sf(7,navy2,true);doc.text('CSN',ML,footerY);
-  sf(6,sub,true);doc.text('CIMENTOS',ML+7,footerY);
-  sf(6.5,sub,false);doc.text('RELATORIO TECNICO DE INSPECAO',W/2,footerY,{align:'center'});
-  sf(6.5,sub,false);doc.text('PAGINA 1 DE 1',W-MR,footerY,{align:'right'});
-
-  var fn=(r.proto?r.proto:'Relatorio_CSN_'+(r.date||'sem-data').replace(/[/]/g,'-'))+'.pdf';
+  var fn=(r.proto||'Relatorio_CSN_'+(r.date||'').replace(/[/]/g,'-'))+'.pdf';
   var bl=doc.output('blob');
   if(navigator.share){
     navigator.share({title:'Relatorio CSN',files:[new File([bl],fn,{type:'application/pdf'})]})
@@ -3401,7 +3483,60 @@ async function generatePDFFromReport(r,photos){
       .catch(function(e){if(e.name!=='AbortError'){doc.save(fn);toast('PDF salvo!');}});
   }else{doc.save(fn);toast('PDF salvo!');}
   }catch(pdfErr){console.error('PDF erro:',pdfErr);toast('Erro PDF: '+(pdfErr.message||String(pdfErr)).substring(0,50));}
+
+  // ════════════════════════════════════════════════════════
+  // FUNCAO AUXILIAR: desenha coluna de DETALHAMENTO
+  // ════════════════════════════════════════════════════════
+  function drawDetColumn(x,y,w,h,act,idx){
+    var doc2=doc;
+    var navy2c=navy2,bluec=blue,textc=text,subc=sub,bdc=border,bgc=bg,whitec=white;
+    // Fundo da coluna
+    rr(x,y,w,h,2,bgc);
+    rrs(x,y,w,h,2,bdc,0.25);
+    // Cabecalho da coluna
+    rr(x,y,w,8,2,navy2c);
+    sf(7,whitec,true);doc2.text('DETALHAMENTO',x+w/2,y+5.5,{align:'center'});
+    var dy=y+12;
+    var maxY=y+h-4;
+    var pw=w-8;
+
+    // Numero da atividade
+    rr(x+3,dy-3.5,5.5,5.5,1.5,navy2c);
+    sf(7,whitec,true);doc2.text(String(idx+1),x+5.75,dy+0.3,{align:'center'});
+    sf(8,navy2c,true);
+    var tit=doc2.splitTextToSize(sa(act.desc||'').toUpperCase(),pw-10);
+    tit.forEach(function(ln){
+      if(dy>maxY)return;
+      doc2.text(ln,x+11,dy);dy+=4.5;
+    });
+    dy+=3;
+
+    // Equipamento
+    if(act.equip&&dy<maxY){
+      sf(6.5,subc,true);doc2.text('EQUIPAMENTO',x+4,dy);dy+=4;
+      sf(7.5,textc,false);
+      doc2.splitTextToSize(sa(act.equip),pw).forEach(function(ln){
+        if(dy>maxY)return;
+        doc2.text(ln,x+4,dy);dy+=4;
+      });
+      dy+=3;
+    }
+
+    // Colaboradores
+    if(act.cols&&act.cols.length&&dy<maxY){
+      sd(bdc,0.2);doc2.line(x+4,dy,x+w-4,dy);dy+=4;
+      sf(6.5,subc,true);doc2.text('COLABORADORES',x+4,dy);dy+=4;
+      act.cols.forEach(function(colName){
+        if(dy>maxY)return;
+        sf(7.5,textc,false);
+        var cL=doc2.splitTextToSize(sa(colName),pw);
+        cL.forEach(function(ln){if(dy>maxY)return;doc2.text(ln,x+4,dy);dy+=4;});
+      });
+      dy+=3;
+    }
+  }
 }
+
 
 
 
@@ -3865,8 +4000,7 @@ function openForceReview() {
   set('rev-solicit', (document.getElementById('force-solicit')||{}).value||'');
   set('rev-aprov',   aprov);
   set('rev-tag',     tag);
-  set('rev-sistema', sist);
-  set('rev-sistema', equip+' / '+(document.getElementById('force-sistema')||{}).value||'');
+  set('rev-sistema', equip+' / '+sist);
   set('rev-motivo',  '"'+motivo+'"');
 
   navTo('scr-force-review');
@@ -3929,8 +4063,8 @@ function openForceDetail(id) {
 
   var set = function(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; };
   set('detail-tag',     f.tag);
-  set('detail-sistema', f.sistema);
-  set('detail-valor',   f.tipoValor+': '+f.valor);
+  set('detail-sistema', f.equipamento || '—');
+  set('detail-valor',   f.processo || '—');
   set('detail-solicit', f.solicitante);
   set('detail-aprov',   f.aprovador);
   set('detail-motivo',  f.motivo);
@@ -3992,8 +4126,8 @@ function openAprovacao() {
   var set = function(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; };
   set('aprov-solicit', f.solicitante);
   set('aprov-tag',     f.tag);
-  set('aprov-sistema', f.sistema);
-  set('aprov-valor',   f.tipoValor+': '+f.valor);
+  set('aprov-sistema', f.equipamento || '—');
+  set('aprov-valor',   f.processo || '—');
   set('aprov-motivo',  f.motivo);
   set('aprov-data',    f.data);
   var comm = document.getElementById('aprov-comment');
