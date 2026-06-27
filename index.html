@@ -1204,8 +1204,8 @@ body.dark .force-filter-btn.act{background:linear-gradient(135deg,#1565C0,#1e3a5
         <div class="prof-row"><div class="prof-row-ico">&#128295;</div><div class="prof-row-info"><div class="prof-row-lbl">Funcao / Cargo</div><div class="prof-row-val" id="pr-cargo">--</div></div></div>
         <div class="prof-row"><div class="prof-row-ico">&#127968;</div><div class="prof-row-info"><div class="prof-row-lbl">Empresa</div><div class="prof-row-val">CSN Cimentos - Manutencao</div></div></div>
         <div class="prof-row"><div class="prof-row-ico">&#127874;</div><div class="prof-row-info"><div class="prof-row-lbl">Idade</div><div class="prof-row-val" id="pr-idade">--</div></div></div>
-        <div class="prof-row"><div class="prof-row-ico">&#128101;</div><div class="prof-row-info"><div class="prof-row-lbl">Supervisores</div><div class="prof-row-val">Rodrigo Lima / Rafael Gomes</div></div></div>
-        <div class="prof-row"><div class="prof-row-ico">&#128272;</div><div class="prof-row-info"><div class="prof-row-lbl">Lider</div><div class="prof-row-val">Edson Jose</div></div></div>
+        <div class="prof-row"><div class="prof-row-ico">&#128101;</div><div class="prof-row-info"><div class="prof-row-lbl">Coordenador</div><div class="prof-row-val">Rodrigo Lima</div></div></div>
+        <div class="prof-row"><div class="prof-row-ico">&#128272;</div><div class="prof-row-info"><div class="prof-row-lbl">Engenheiro Especialista</div><div class="prof-row-val">Renan Nascimento</div></div></div>
       </div>
       <div class="prof-sec" style="margin-top:8px">
         <div class="prof-sec-title">Aparencia</div>
@@ -3028,8 +3028,8 @@ function generateWPPFromReport(r){
   if(r.hh)L.push('\u23f1 *HH Dispon\u00edvel:* '+r.hh+' colaboradores');
   if(r.om)L.push('\ud83d\udccb *Ordens OM:* '+r.om);
   L.push('\ud83d\udc64 *Respons\u00e1vel:* '+r.resp+(r.cargo?' - '+r.cargo:''));
-  L.push('\ud83d\udc54 *Supervisores:* Rodrigo Lima / Rafael Gomes');
-  L.push('\ud83d\udd11 *L\u00edder:* Edson Jos\u00e9');
+  L.push('\ud83d\udc54 *Coordenador:* Rodrigo Lima');
+  L.push('\ud83d\udd11 *Engenheiro Especialista:* Renan Nascimento');
   if(r.dds)L.push('\ud83d\udee1 *DDS:* '+r.dds);L.push('');
   L.push('\ud83d\udd27 *TIPO DE ATIVIDADE*');L.push('\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501');
   L.push('\u25b8 '+(r.tipo||'--'));
@@ -3277,7 +3277,7 @@ async function generatePDFFromReport(r,photos){
   rf(ML,y,hw,f3H,2,bg,brd);
   rr(ML+3,y+5,7,7,1.5,nv2);
   sf(5,wht,true);doc.text('S',ML+6.5,y+9.5,{align:'center'});
-  tx('SUPERVISORES / LIDER   TEMA DO DDS',ML+12,y+8,5.5,sub,true);
+  tx('COORDENADOR / ENG. ESPECIALISTA   TEMA DO DDS',ML+12,y+8,5.5,sub,true);
   var supTxt=r.supervisores&&r.supervisores.length?r.supervisores.join(' / '):(r.supervisor||'--');
   if(r.dds)supTxt+='  |  DDS: '+sa(r.dds);
   sf(7.5,txt,false);doc.text(split(supTxt,hw-16)[0]||'--',ML+12,y+14);
