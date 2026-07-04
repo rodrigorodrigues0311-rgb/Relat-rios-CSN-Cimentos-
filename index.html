@@ -264,14 +264,14 @@ select.fi option{background:#fff}
 .btn-conclude{width:100%;padding:15px;background:var(--blue2);border:none;border-radius:var(--r);font-size:.95rem;font-weight:700;color:#fff;cursor:pointer;margin-top:8px;font-family:var(--font)}
 
 /* PROFILE */
-.prof-head{background:linear-gradient(160deg,#4C1D95,#6B21A8);padding:48px 20px 28px;text-align:center;border-radius:0 0 28px 28px;position:relative;overflow:hidden}
+.prof-head{background:linear-gradient(160deg,#4C1D95,#6B21A8);padding:26px 20px 16px;text-align:center;border-radius:0 0 20px 20px;position:relative;overflow:hidden}
 .prof-head::before{content:'';position:absolute;left:-20px;bottom:-20px;width:120px;height:120px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='none' stroke='rgba(255,255,255,0.08)' stroke-width='2'/%3E%3C/svg%3E") no-repeat center;pointer-events:none}
-.prof-av{width:80px;height:80px;border-radius:50%;border:3px solid rgba(255,255,255,.4);overflow:hidden;margin:0 auto 10px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative}
+.prof-av{width:60px;height:60px;border-radius:50%;border:2.5px solid rgba(255,255,255,.4);overflow:hidden;margin:0 auto 7px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative}
 .prof-av img{width:100%;height:100%;object-fit:cover;display:none;position:absolute;inset:0}
-.prof-av-ico{font-size:2.2rem;color:rgba(255,255,255,.8)}
-.prof-name{font-size:1.05rem;font-weight:700;color:#fff}
-.prof-role{font-size:.78rem;color:rgba(255,255,255,.65);margin-top:2px}
-.prof-edit-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:20px;padding:5px 16px;font-size:.78rem;font-weight:600;cursor:pointer;margin-top:10px;font-family:var(--font)}
+.prof-av-ico{font-size:1.7rem;color:rgba(255,255,255,.8)}
+.prof-name{font-size:.95rem;font-weight:700;color:#fff}
+.prof-role{font-size:.72rem;color:rgba(255,255,255,.65);margin-top:2px}
+.prof-edit-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:20px;padding:4px 14px;font-size:.72rem;font-weight:600;cursor:pointer;margin-top:8px;font-family:var(--font)}
 .prof-sec{padding:16px}
 .prof-sec-title{font-size:.7rem;font-weight:700;color:var(--g500);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
 .prof-row{display:flex;align-items:center;gap:13px;padding:13px;background:#fff;border-radius:var(--r);margin-bottom:8px;border:1px solid var(--g200)}
@@ -1627,7 +1627,7 @@ CREATE POLICY "Acesso publico" ON relatorios FOR ALL USING (true);</pre>
       </div>
     </div>
   </div>
-  <div class="bottom-nav"><button class="bn-item" onclick="navTo('scr-dash')"><span class="bn-icon">&#127968;</span><span class="bn-lbl">Inicio</span></button><button class="bn-item" onclick="navTo('scr-history')"><span class="bn-icon">&#128203;</span><span class="bn-lbl">Relatorios</span></button><button class="bn-item" onclick="openTipoChooser()" style="position:relative"><span class="bn-fab">&#43;</span><span class="bn-icon" style="margin-top:18px;opacity:0">.</span><span class="bn-lbl">Novo</span></button><button class="bn-item act" onclick="navTo('scr-force')"><span class="bn-icon">&#129392;</span><span class="bn-lbl">Force</span></button><button class="bn-item" onclick="navTo('scr-profile')"><span class="bn-icon">&#128100;</span><span class="bn-lbl">Perfil</span></button></div>
+  <div class="bottom-nav"><button class="bn-item" onclick="navTo('scr-dash')"><span class="bn-icon">&#127968;</span><span class="bn-lbl">Inicio</span></button><button class="bn-item" onclick="navTo('scr-history')"><span class="bn-icon">&#128203;</span><span class="bn-lbl">Relatorios</span></button><button class="bn-item" onclick="openTipoChooser()" style="position:relative"><span class="bn-fab">&#43;</span><span class="bn-icon" style="margin-top:18px;opacity:0">.</span><span class="bn-lbl">Novo</span></button><button class="bn-item act" onclick="navTo('scr-force')"><span class="bn-icon">&#9888;&#65039;</span><span class="bn-lbl">Force</span></button><button class="bn-item" onclick="navTo('scr-profile')"><span class="bn-icon">&#128100;</span><span class="bn-lbl">Perfil</span></button></div>
 </div>
 
 <!-- ══ TELA 02: NOVA SOLICITAÇÃO ══ -->
