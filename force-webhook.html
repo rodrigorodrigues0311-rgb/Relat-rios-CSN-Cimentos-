@@ -51,6 +51,7 @@ textarea:focus{border-color:#7C3AED;}
     <div class="info-row"><div class="info-lbl">Data</div><div class="info-val" id="d-data">—</div></div>
     <div class="info-row"><div class="info-lbl">Solicitante</div><div class="info-val" id="d-solicit">—</div></div>
     <div class="info-row"><div class="info-lbl">Matrícula</div><div class="info-val" id="d-mat">—</div></div>
+    <div class="info-row"><div class="info-lbl">E-mail</div><div class="info-val" id="d-email">—</div></div>
     <div class="info-row"><div class="info-lbl">Equipamento</div><div class="info-val" id="d-equip">—</div></div>
     <div class="info-row"><div class="info-lbl">Processo</div><div class="info-val" id="d-proc">—</div></div>
     <div class="info-row"><div class="info-lbl">Tag</div><div class="info-val tag" id="d-tag">—</div></div>
@@ -116,6 +117,7 @@ function loadForce(){
       setText('d-data',   data.data);
       setText('d-solicit',data.solicitante);
       setText('d-mat',    data.matricula);
+      setText('d-email',  data.email||'—');
       setText('d-equip',  data.equipamento||data.sistema||'—');
       setText('d-proc',   data.processo||'—');
       setText('d-tag',    data.tag);
@@ -206,6 +208,7 @@ function sendEmailNotification(decisao, comm, ts){
     'Data/Hora: '+ts+'\n'+
     'Aprovador: '+(forceData.aprovador||'—')+'\n\n'+
     'Solicitante: '+(forceData.solicitante||'—')+' (Mat: '+(forceData.matricula||'—')+')\n'+
+    (forceData.email ? ('E-mail: '+forceData.email+'\n') : '')+
     'Equipamento: '+(forceData.equipamento||'—')+'\n'+
     'Processo: '+(forceData.processo||'—')+'\n'+
     'Tag: '+(forceData.tag||'—')+'\n'+
@@ -221,11 +224,18 @@ function sendEmailNotification(decisao, comm, ts){
     return;
   }
 
-  var total   = NOTIFY_EMAILS.length;
+  // Inclui o e-mail do solicitante (preenchido no formulario) junto com a equipe,
+  // evitando duplicar caso ja esteja na lista fixa
+  var recipients = NOTIFY_EMAILS.slice();
+  if(forceData.email && recipients.indexOf(forceData.email) === -1){
+    recipients.push(forceData.email);
+  }
+
+  var total   = recipients.length;
   var success = 0;
   var errors  = [];
 
-  NOTIFY_EMAILS.forEach(function(email, idx){
+  recipients.forEach(function(email, idx){
     console.log('Enviando email para:', email);
     emailjs.send(
       EMAILJS_SVC,

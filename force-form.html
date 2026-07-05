@@ -65,6 +65,10 @@ textarea{resize:none;min-height:90px;line-height:1.5;}
         <label>Matrícula <span class="req">*</span></label>
         <input type="text" id="f-mat" placeholder="Ex: 12345">
       </div>
+      <div class="field">
+        <label>E-mail</label>
+        <input type="email" id="f-email" placeholder="Ex: rodrigo.lima@csn.com.br">
+      </div>
     </div>
 
     <div class="card">
@@ -187,7 +191,7 @@ function buildWppMsg(f, proto){
     '\uD83D\uDCCB *Protocolo:* ' + proto + '\n' +
     '\uD83D\uDCC5 *Data/Hora:* ' + f.data + '\n\n' +
     '\uD83D\uDC64 *Solicitante:* ' + f.solicitante + '\n' +
-    '\uD83E\uDEAA *Matr\u00EDcula:* ' + f.matricula + '\n\n' +
+    '\uD83E\uDEAA *Matr\u00EDcula:* ' + f.matricula + (f.email ? ('\n\uD83D\uDCE7 *E-mail:* ' + f.email) : '') + '\n\n' +
     '\u2699\uFE0F *Equipamento:* ' + f.equipamento + '\n' +
     '\uD83C\uDFED *Processo:* ' + f.processo + '\n' +
     '\uD83C\uDFF7 *Tag/Condi\u00E7\u00E3o:* ' + f.tag + '\n\n' +
@@ -202,6 +206,7 @@ function buildWppMsg(f, proto){
 function submit(){
   var nome   = document.getElementById('f-nome').value.trim();
   var mat    = document.getElementById('f-mat').value.trim();
+  var email  = document.getElementById('f-email').value.trim();
   var tag    = document.getElementById('f-tag').value.trim();
   var equip  = document.getElementById('f-equip').value.trim();
   var sistSel = document.getElementById('f-sistema').value;
@@ -211,6 +216,7 @@ function submit(){
 
   if(!nome)   { alert('Informe seu nome completo.'); return; }
   if(!mat)    { alert('Informe sua matrícula.'); return; }
+  if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('Informe um e-mail válido ou deixe o campo vazio.'); return; }
   if(!tag)    { alert('Informe a Tag/Condição a ser forçada.'); return; }
   if(!equip)  { alert('Selecione o equipamento.'); return; }
   if(!sist)   { alert('Selecione o processo.'); return; }
@@ -228,6 +234,7 @@ function submit(){
     data:        agora,
     solicitante: nome,
     matricula:   mat,
+    email:       email,
     tag:         tag,
     equipamento: equip,
     processo:    sist,
