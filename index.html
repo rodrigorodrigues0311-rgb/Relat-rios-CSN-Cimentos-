@@ -2112,6 +2112,13 @@ function fmtMin(min){
   var h=Math.floor(min/60), m=min%60;
   return (h>0?h+'h ':'')+m+'min';
 }
+function pendDataBR(p){
+  var iso = (p&&(p.dataRelatorio || (p.criadoEm||'').substring(0,10))) || '';
+  if(!iso || iso.length<10) return '-';
+  var parts=iso.substring(0,10).split('-');
+  if(parts.length!==3) return '-';
+  return parts[2]+'/'+parts[1]+'/'+parts[0];
+}
 function fmtHM(min){
   if(min===null||min===undefined||isNaN(min))return '00:00';
   var h=Math.floor(min/60), m=min%60;
@@ -2219,7 +2226,7 @@ function addPendTurno(){
   var texto=ta.value.trim();
   if(!texto){toast('Descreva a pendencia');return;}
   var id='p'+Date.now();
-  var item={texto:texto,criadoPor:S.turno.tecnico||'Tecnico',criadoEm:new Date().toISOString(),status:'aberta'};
+  var item={texto:texto,criadoPor:S.turno.tecnico||'Tecnico',criadoEm:new Date().toISOString(),dataRelatorio:S.turno.data||new Date().toISOString().substring(0,10),status:'aberta'};
   S.pendTurno.push(Object.assign({id:id},item));
   savePendTurnoLocal();
   renderPendTurnoList();
@@ -2275,7 +2282,7 @@ function renderPendTurnoList(){
     d.style.cssText='background:#fff;border:1px solid var(--g200);border-radius:var(--r);padding:12px;margin-bottom:8px;';
     d.innerHTML='<div style="font-size:.85rem;color:var(--g800);margin-bottom:6px">'+p.texto+'</div>'
       +'<div style="display:flex;justify-content:space-between;align-items:center">'
-      +'<span style="font-size:.72rem;color:var(--g500)">Por '+(p.criadoPor||'-')+'</span>'
+      +'<span style="font-size:.72rem;color:var(--g500)">Por '+(p.criadoPor||'-')+' &middot; '+pendDataBR(p)+'</span>'
       +'<button onclick="concludePendTurno(\''+p.id+'\')" style="border:none;background:var(--green-lt);color:#2E7D32;border-radius:8px;padding:5px 10px;font-size:.75rem;font-weight:700;cursor:pointer">&#10003; Concluir</button>'
       +'</div>';
     el.appendChild(d);
@@ -2423,7 +2430,7 @@ function generateTurnoWPPFromReport(r){
   if(r.pendenciasAbertas&&r.pendenciasAbertas.length){
     L.push('\uD83D\uDD34 *PEND\u00caNCIAS EM ABERTO*');
     L.push('\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501');
-    r.pendenciasAbertas.forEach(function(p,i){L.push((i+1)+'. '+p.texto+' (por '+(p.criadoPor||'-')+')');});
+    r.pendenciasAbertas.forEach(function(p,i){L.push((i+1)+'. '+p.texto+' (por '+(p.criadoPor||'-')+' em '+pendDataBR(p)+')');});
     L.push('');
   }
   L.push('\u23F1 *RESUMO DE TEMPO E IMPACTO*');
@@ -2479,11 +2486,13 @@ function resumoAtendCardsHTML(cnt){
 
 function pendTableHTML(pends){
   if(!pends || !pends.length) return '<div style="font-size:14px;color:#999;padding:10px 0;">Nenhuma pendencia registrada</div>';
-  var html='<table style="width:100%;border-collapse:collapse;font-size:12.5px;"><tbody>';
+  var html='<table style="width:100%;border-collapse:collapse;font-size:12.5px;">'
+    +'<thead><tr style="color:#888;text-align:left;font-size:9.5px;"><th style="padding:2px 5px;">DESCRICAO</th><th style="padding:2px 5px;">DATA</th><th style="padding:2px 5px;">STATUS</th></tr></thead><tbody>';
   pends.slice(0,5).forEach(function(p){
     var open=(p.status!=='concluida');
     html+='<tr style="border-top:1px solid #eee;">'
       +'<td style="padding:6px 5px;color:#333;vertical-align:top;font-size:12.5px;">'+escHtml((p.texto||'').substring(0,70))+'</td>'
+      +'<td style="padding:6px 5px;color:#666;white-space:nowrap;vertical-align:top;font-size:11px;">'+pendDataBR(p)+'</td>'
       +'<td style="padding:6px 5px;white-space:nowrap;vertical-align:top;"><span style="background:'+(open?'#fff3e0':'#e8f5e9')+';color:'+(open?'#e65100':'#2e7d32')+';padding:3px 9px;border-radius:10px;font-size:10px;font-weight:800;">'+(open?'ABERTA':'CONCLUIDA')+'</span></td>'
       +'</tr>';
   });
