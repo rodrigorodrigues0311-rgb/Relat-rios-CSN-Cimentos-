@@ -2210,6 +2210,10 @@ function renderTurnoAtends(){
 }
 
 // ── PENDENCIAS DE TURNO (compartilhadas via Firebase) ──
+function savePendTurnoLocal(){
+  try{ localStorage.setItem(SK.pendTurno, JSON.stringify(S.pendTurno)); }catch(e){}
+}
+
 function addPendTurno(){
   var ta=document.getElementById('t-pend-nova');
   var texto=ta.value.trim();
@@ -2217,11 +2221,13 @@ function addPendTurno(){
   var id='p'+Date.now();
   var item={texto:texto,criadoPor:S.turno.tecnico||'Tecnico',criadoEm:new Date().toISOString(),status:'aberta'};
   S.pendTurno.push(Object.assign({id:id},item));
+  savePendTurnoLocal();
   renderPendTurnoList();
   ta.value='';
-  if(FB_OK){
-    fetch(FB_URL+'/pendencias_turno/'+id+'.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(item)}).catch(function(e){console.warn('addPendTurno:',e.message);});
-  }
+  // Sempre tenta gravar no Firebase (independente do flag FB_OK, que pode estar
+  // desatualizado); se falhar por estar offline, o item ja esta salvo localmente.
+  fetch(FB_URL+'/pendencias_turno/'+id+'.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(item)})
+    .catch(function(e){console.warn('addPendTurno (mantido local, sem internet):',e.message);});
   toast('Pendencia registrada');
 }
 
@@ -2232,23 +2238,31 @@ function concludePendTurno(id){
   item.status='concluida';
   item.concluidoPor=nome;
   item.concluidoEm=new Date().toISOString();
+  savePendTurnoLocal();
   renderPendTurnoList();
-  if(FB_OK){
-    fetch(FB_URL+'/pendencias_turno/'+id+'.json',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'concluida',concluidoPor:nome,concluidoEm:item.concluidoEm})}).catch(function(e){console.warn('concludePendTurno:',e.message);});
-  }
+  fetch(FB_URL+'/pendencias_turno/'+id+'.json',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'concluida',concluidoPor:nome,concluidoEm:item.concluidoEm})})
+    .catch(function(e){console.warn('concludePendTurno (mantido local, sem internet):',e.message);});
   toast('Pendencia concluida');
 }
 
 async function loadPendTurno(){
-  if(!FB_OK){ renderPendTurnoList(); return; }
+  // 1) Restaura instantaneamente do cache local, para nunca aparecer vazio por engano
+  try{
+    var raw=localStorage.getItem(SK.pendTurno);
+    if(raw){ var localData=JSON.parse(raw); if(Array.isArray(localData)) S.pendTurno=localData; }
+  }catch(e){}
+  renderPendTurnoList();
+  // 2) Sempre tenta buscar do Firebase a lista mais atual (compartilhada com a equipe),
+  // independente do flag FB_OK - se estiver offline, a chamada falha e ficamos com o cache local.
   try{
     var r=await fetch(FB_URL+'/pendencias_turno.json');
     var data=await r.json();
     if(data && typeof data==='object'){
       S.pendTurno=Object.keys(data).map(function(k){var v=data[k]||{};v.id=k;return v;});
+      savePendTurnoLocal();
+      renderPendTurnoList();
     }
-    renderPendTurnoList();
-  }catch(e){ console.warn('loadPendTurno:',e.message); renderPendTurnoList(); }
+  }catch(e){ console.warn('loadPendTurno (usando cache local):',e.message); }
 }
 
 function renderPendTurnoList(){
@@ -2850,7 +2864,7 @@ function sa(t){
 var S={step:1,tipo:'',typeKey:'',acts:[],photos:[],abss:[],devs:[],pends:[],
        history:[],selectedReport:null,inReport:false,hasDraft:false,chart:null,_dt:null,
        turnoStep:1,turno:{data:'',letra:'',horIdx:null,tecnico:'',tecnicoOutro:''},turnoAtends:[],pendTurno:[]};
-var SK={rphoto:'rp1',rname:'rn1',rcargo:'rc1',history:'hist1',draft:'draft1',draftTurno:'draft_turno1',
+var SK={rphoto:'rp1',rname:'rn1',rcargo:'rc1',history:'hist1',draft:'draft1',draftTurno:'draft_turno1',pendTurno:'pendturno1',
         prof:{nome:'p-nome',mat:'p-mat',func:'p-func',idade:'p-idade',photo:'p-photo'}};
 
 // PWA
@@ -2971,6 +2985,7 @@ function init(){
   loadProfile();
   _loadHistLocal();
   loadDraft();
+  try{ var raw=localStorage.getItem(SK.pendTurno); if(raw){ var d=JSON.parse(raw); if(Array.isArray(d)) S.pendTurno=d; } }catch(e){}
   updateDashDate();
   updateDashHeader();
   document.getElementById('f-data').value=new Date().toISOString().split('T')[0];
@@ -2993,6 +3008,7 @@ function init(){
       if(r)r.textContent='Erro ao iniciar: '+(e.message||String(e)).substring(0,50);
     }
     setTimeout(function(){try{dbInit();}catch(e){}},500);
+    setTimeout(function(){try{loadPendTurno();}catch(e){}},1500);
   },800);
 }
 
