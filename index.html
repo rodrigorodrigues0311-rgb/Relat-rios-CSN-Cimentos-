@@ -2363,7 +2363,8 @@ function sendTurnoReport(){
   fbSaveReport(report);
   try{localStorage.removeItem(SK.draftTurno);}catch(e){}
   try{if(typeof fbClearDraftTurno==='function')fbClearDraftTurno();}catch(e){}
-  S.hasDraft=false;updateDraftBadge();
+  window._hasDraftTurno=false;
+  S.hasDraft=!!(window._hasDraftPrev||window._hasDraftTurno);updateDraftBadge();
   S.turno={data:'',letra:'',horIdx:null,tecnico:'',tecnicoOutro:'',observacoes:''};
   S.turnoAtends=[];
   toast('Relatorio de turno enviado!');
@@ -3406,16 +3407,18 @@ function rmAbs(i){S.abss.splice(i,1);renderAbsences();autosaveDraft();}
 
 // DEVS/PENDS
 var DVC=0,PDC=0;
-function addDev(){
+function addDev(texto){
   DVC++;var id='dv'+DVC,div=document.createElement('div');div.className='dp-row';div.id=id;
   var ta=document.createElement('textarea');ta.className='fi';ta.style.cssText='margin:0;min-height:70px;flex:1';ta.placeholder='Atividade nao realizada e motivo...';
+  if(texto)ta.value=texto;
   ta.addEventListener('input',autosaveDraft);div.appendChild(ta);
   if(DVC>1){var rm=document.createElement('button');rm.className='dp-del';rm.textContent='x';rm.onclick=function(){div.remove();autosaveDraft();};div.appendChild(rm);}
   document.getElementById('dev-list').appendChild(div);
 }
-function addPend(){
+function addPend(texto){
   PDC++;var id='pd'+PDC,div=document.createElement('div');div.className='dp-row';div.id=id;
   var ta=document.createElement('textarea');ta.className='fi';ta.style.cssText='margin:0;min-height:70px;flex:1;text-transform:uppercase';ta.placeholder='DESCREVA A PENDENCIA...';
+  if(texto)ta.value=texto;
   ta.addEventListener('input',autosaveDraft);div.appendChild(ta);
   if(PDC>1){var rm=document.createElement('button');rm.className='dp-del';rm.textContent='x';rm.onclick=function(){div.remove();autosaveDraft();};div.appendChild(rm);}
   document.getElementById('pend-list').appendChild(div);
@@ -3445,33 +3448,51 @@ function autosaveDraft(){
 }
 
 function loadDraft(){
-  try{var raw=localStorage.getItem(SK.draft);if(raw){S.hasDraft=true;updateDraftBadge();}}catch(e){}
+  try{var raw=localStorage.getItem(SK.draft);if(raw){S.hasDraft=true;window._hasDraftPrev=true;}}catch(e){}
+  try{var rawT=localStorage.getItem(SK.draftTurno);if(rawT){S.hasDraft=true;window._hasDraftTurno=true;}}catch(e){}
+  updateDraftBadge();
 }
 
 function updateDraftBadge(){
-  var b=document.getElementById('draft-badge');if(b)b.style.display=S.hasDraft?'block':'none';
+  var b=document.getElementById('draft-badge');if(!b)return;
+  var n=(window._hasDraftPrev?1:0)+(window._hasDraftTurno?1:0);
+  // Se ainda nao sabemos os detalhes (ex: antes do primeiro fbStartPolling), mas S.hasDraft
+  // esta true, mostra pelo menos "1" em vez de esconder o ticket.
+  if(n===0 && S.hasDraft) n=1;
+  b.textContent=String(n);
+  b.style.display=n>0?'block':'none';
 }
 
 async function resumeDraft(){
   toast('Buscando rascunhos...');
-  var dPrev=await fbFetchDraftRaw('prev');
-  var dTurno=await fbFetchDraftRaw('turno');
-  window._draftPrev=dPrev;
-  window._draftTurno=dTurno;
-  if(dPrev && dTurno){
-    document.getElementById('draft-choice-ov').classList.add('show');
-    return;
+  try{
+    var dPrev=await fbFetchDraftRaw('prev');
+    var dTurno=await fbFetchDraftRaw('turno');
+    window._draftPrev=dPrev;
+    window._draftTurno=dTurno;
+    if(dPrev && dTurno){
+      document.getElementById('draft-choice-ov').classList.add('show');
+      return;
+    }
+    if(dTurno){ applyTurnoDraft(dTurno); return; }
+    if(dPrev){ applyDraft(dPrev); return; }
+    toast('Nenhum rascunho salvo');
+  }catch(e){
+    console.error('resumeDraft erro:',e);
+    toast('Erro ao buscar rascunho: '+(e.message||'').substring(0,60));
   }
-  if(dTurno){ applyTurnoDraft(dTurno); return; }
-  if(dPrev){ applyDraft(dPrev); return; }
-  toast('Nenhum rascunho salvo');
 }
 
 function chooseDraftKind(kind){
   document.getElementById('draft-choice-ov').classList.remove('show');
-  if(kind==='turno' && window._draftTurno){ applyTurnoDraft(window._draftTurno); return; }
-  if(kind==='prev' && window._draftPrev){ applyDraft(window._draftPrev); return; }
-  toast('Rascunho nao encontrado');
+  try{
+    if(kind==='turno' && window._draftTurno){ applyTurnoDraft(window._draftTurno); return; }
+    if(kind==='prev' && window._draftPrev){ applyDraft(window._draftPrev); return; }
+    toast('Rascunho nao encontrado');
+  }catch(e){
+    console.error('chooseDraftKind erro:',e);
+    toast('Erro ao abrir rascunho: '+(e.message||'').substring(0,60));
+  }
 }
 
 // Roteia o rascunho para o handler correto (Turno ou Preventiva)
@@ -3532,8 +3553,8 @@ function applyDraft(d){
     var el=document.getElementById(id);if(el&&d[fields[id]])el.value=d[fields[id]];
   });
   S.inReport=true;renderActivities();renderPhotos();renderAbsences();
-  if(d.devs&&d.devs.length)d.devs.forEach(function(){addDev();});
-  if(d.pends&&d.pends.length)d.pends.forEach(function(){addPend();});
+  if(d.devs&&d.devs.length)d.devs.forEach(function(t){addDev(t);});
+  if(d.pends&&d.pends.length)d.pends.forEach(function(t){addPend(t);});
   if(S.typeKey)selType(S.tipo,S.typeKey,S.typeKey==='prev'?'blue':S.typeKey==='cor'?'red':S.typeKey==='mel'?'grn':'org');
   goStep(d.step||1);toast('Rascunho carregado!');
 }
@@ -3552,7 +3573,8 @@ function discardAndExit(){
   // Limpa Firebase
   try{if(typeof fbClearDraft==='function')fbClearDraft();}catch(e){}
   // Reseta estado
-  S.hasDraft=false;
+  window._hasDraftPrev=false;
+  S.hasDraft=!!(window._hasDraftPrev||window._hasDraftTurno);
   S.inReport=false;
   S.acts=[];S.photos=[];S.abss=[];S.tipo='';S.typeKey='';S.step=1;
   // Esconde badge
@@ -3615,14 +3637,15 @@ function sendReport(){
   try{if(typeof dbSaveReport==='function'&&DB_OK)dbSaveReport(report);}catch(e){}
   // Limpa rascunho local
   try{localStorage.removeItem(SK.draft);localStorage.removeItem('draft_proto');}catch(e){}
-  S.hasDraft=false; updateDraftBadge();
+  window._hasDraftPrev=false;
+  S.hasDraft=!!(window._hasDraftPrev||window._hasDraftTurno); updateDraftBadge();
   // Limpa rascunho do Firebase IMEDIATAMENTE para TODOS verem
   try{
     if(FB_OK&&FB_URL){
       fbClearDraft();
     }
   }catch(e){}
-  S.hasDraft=false;S.inReport=false;updateDraftBadge();
+  S.inReport=false;updateDraftBadge();
   navTo('scr-succ');
 }
 
@@ -4039,69 +4062,6 @@ function fbStartPolling(){
   });
   FB_POLL = true;
 }
-
-function fbTestManual(){
-  var result = document.getElementById('fb-test-result');
-  var dot = document.getElementById('sync-dot');
-  var title = document.getElementById('fb-status-title');
-  if(result) result.textContent = 'Testando...';
-  fetch(FB_URL + '/.json?shallow=true')
-    .then(function(r){
-      if(result){result.textContent = 'GET status: ' + r.status + ' - ' + (r.ok?'OK':'FALHOU');result.style.display='block';}
-      if(r.ok){
-        if(dot){dot.style.background='#43a047';dot.style.boxShadow='0 0 8px #43a047';}
-        if(title) title.textContent = 'Firebase Conectado!';
-        FB_OK = true;
-        fbStartPolling();
-        fbLoadHistory();
-      }
-      return r.text();
-    })
-    .then(function(txt){
-      if(result){result.textContent += ' | Resp: ' + txt.substring(0,30);result.style.display='block';}
-    })
-    .catch(function(e){
-      if(result){result.textContent = 'ERRO: ' + (e.message||String(e)).substring(0,60);result.style.display='block';}
-      if(dot){dot.style.background='#e53935';dot.style.boxShadow='0 0 8px #e53935';}
-    });
-}
-
-function fbStartPolling(){
-  if(FB_POLL) clearInterval(FB_POLL);
-  var lastRascunhoTs = 0;
-  FB_POLL = setInterval(function(){
-    if(!FB_OK || S.inReport) return;
-    // Verifica rascunho
-    fetch(FB_URL + '/rascunho.json')
-      .then(function(r){ return r.json(); })
-      .then(function(data){
-        if(data && data._ts && data._ts !== lastRascunhoTs){
-          lastRascunhoTs = data._ts;
-          var minhaResp = localStorage.getItem('rn1') || '';
-          // Notifica se o rascunho e de outra pessoa
-          if(data.resp && data.resp !== minhaResp){
-            S.hasDraft = true;
-            updateDraftBadge();
-            toast('Rascunho de ' + data.resp + ' disponivel!');
-          } else if(data.resp){
-            S.hasDraft = true;
-            updateDraftBadge();
-          }
-        } else if(!data || data === null){
-          // Rascunho foi deletado (relatorio enviado) - limpa para todos
-          if(S.hasDraft){
-            S.hasDraft=false;
-            updateDraftBadge();
-            try{localStorage.removeItem(SK.draft);}catch(e){}
-          }
-        }
-      })
-      .catch(function(){});
-    // Verifica historico novo
-    fbLoadHistory();
-  }, 8000);
-}
-
 
 var SUPA_URL='https://viosfzgzljrlfsqjixog.supabase.co';
 var SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpb3Nmemd6bGpybGZzcWppeG9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MzA0NTEsImV4cCI6MjA5NDEwNjQ1MX0.rpm2erBikpAtkz-aQYCW_IXKGmEOoHPs-_jXQxo6gNA';
