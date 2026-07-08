@@ -4396,67 +4396,75 @@ function listBoxHTML(items, emptyMsg, prefix){
 }
 
 // Monta o HTML completo do Relatorio de Atividades (Preventiva/Corretiva/etc)
+function idRowIco(iconSrc, label, value){
+  return '<div style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid #f0eef7;">'
+    +'<img src="'+iconSrc+'" style="width:24px;height:24px;object-fit:contain;flex-shrink:0;">'
+    +'<div style="width:150px;flex-shrink:0;font-size:9.5px;color:#999;font-weight:800;letter-spacing:.2px;">'+escHtml(label.toUpperCase())+'</div>'
+    +'<div style="font-size:12px;color:#1a1a2e;font-weight:700;">'+escHtml(value)+'</div>'
+  +'</div>';
+}
+
 function buildPreventivaReportHTML(r){
   var acts=r.acts||[];
   var abss=r.abss||[];
   var devs=r.devs||[];
   var pends=r.pends||[];
-  var W=1600;
+  var W=1200;
 
-  var header='<div style="background:#1e0a4d;padding:20px 32px;display:flex;align-items:center;justify-content:space-between;color:#fff;">'
-      +'<div style="display:flex;align-items:center;gap:16px;">'
-        +'<div style="width:50px;height:50px;background:rgba(255,255,255,.15);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;">\uD83D\uDCCB</div>'
-        +'<div><div style="font-size:34px;font-weight:800;letter-spacing:.5px;">RELATORIO DE ATIVIDADES</div><div style="font-size:13px;color:#d8c8f5;letter-spacing:1px;margin-top:2px;">EQUIPE DE MANUTENCAO</div></div>'
+  var header='<div style="background:#1e0a4d;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;color:#fff;">'
+      +'<div style="display:flex;align-items:center;gap:14px;">'
+        +'<div style="width:46px;height:46px;background:rgba(255,255,255,.15);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:22px;">\uD83D\uDCCB</div>'
+        +'<div><div style="font-size:26px;font-weight:800;letter-spacing:.5px;">RELATORIO DE ATIVIDADES</div><div style="font-size:11.5px;color:#d8c8f5;letter-spacing:1px;margin-top:2px;">EQUIPE DE MANUTENCAO</div></div>'
       +'</div>'
-      +'<img src="'+CSN_LOGO_B64+'" style="height:70px;">'
+      +'<img src="'+CSN_LOGO_B64+'" style="height:52px;">'
     +'</div>';
 
-  var row1='<div style="padding:14px 32px 0;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">'
-    +infoCardIco(ICO_DATA,'Data',r.date||'-')
-    +infoCardIco(ICO_RESPONSAVEL,'Responsavel',properCase(r.resp)+(r.cargo?' - '+properCase(r.cargo):''))
-    +infoCardIco(ICO_EMPRESA,'Empresa','CSN Cimentos')
-    +infoCardIco(ICO_EQUIPE,'Equipe','Manutencao')
+  var idCard='<div style="padding:14px 28px 0;">'
+    +'<div style="background:#fff;border:1px solid #e2e2ec;border-radius:8px;padding:4px 12px;">'
+      +idRowIco(ICO_DATA,'Data',r.date||'-')
+      +idRowIco(ICO_RESPONSAVEL,'Responsavel',properCase(r.resp)+(r.cargo?' - '+properCase(r.cargo):''))
+      +idRowIco(ICO_EMPRESA,'Empresa','CSN Cimentos')
+      +idRowIco(ICO_EQUIPE,'Equipe','Manutencao')
+      +idRowIco(ICO_TIPO_ATIV,'Tipo de Atividade',r.tipo||'-')
+      +idRowIco(ICO_EQUIPAMENTO,'Equipamento / Area',r.equip||'-')
+      +idRowIco(ICO_CLASSIFICACAO,'Classificacao',r.tipo||'-')
+      +(r.hh?idRowIco(ICO_MAO_DE_OBRA,'Mao de Obra',r.hh+' colaboradores'):'')
+      +(r.om?idRowIco(ICO_EMPRESA,'Ordens OM',r.om):'')
+      +idRowIco(ICO_EQUIPE,'Supervisores / Lider do DDS',r.dds?properCase(r.dds):'-')
+    +'</div>'
   +'</div>';
 
-  var row2='<div style="padding:10px 32px 0;display:grid;grid-template-columns:repeat(5,1fr);gap:10px;">'
-    +infoCardIco(ICO_TIPO_ATIV,'Tipo de Atividade',r.tipo||'-')
-    +infoCardIco(ICO_EQUIPAMENTO,'Equipamento / Area',r.equip||'-')
-    +infoCardIco(ICO_CLASSIFICACAO,'Classificacao',r.tipo||'-')
-    +infoCardIco(ICO_MAO_DE_OBRA,'Mao de Obra',r.hh?(r.hh+' colaboradores'):'-')
-    +infoCardIco(ICO_EMPRESA,'Ordens OM',r.om||'-')
+  var ausenciasCard='<div style="padding:10px 28px 0;">'
+    +cardWrapIco('<img src="'+ICO_AUSENCIAS+'" style="width:16px;height:16px;"><span>AUSENCIAS DO DIA</span>', ausenciasListHTML(abss))
   +'</div>';
 
-  var row3='<div style="padding:10px 32px 0;display:grid;grid-template-columns:2fr 1fr;gap:10px;">'
-    +cardWrapIco('<img src="'+ICO_EQUIPE+'" style="width:18px;height:18px;"><span>SUPERVISORES / LIDER DO DDS</span>', '<div style="font-size:11.5px;color:#333;">'+escHtml(r.dds?properCase(r.dds):'-')+'</div>')
-    +cardWrapIco('<img src="'+ICO_AUSENCIAS+'" style="width:18px;height:18px;"><span>AUSENCIAS DO DIA</span>', ausenciasListHTML(abss))
+  var atividadesHeader='<div style="padding:10px 28px 0;">'
+    +'<div style="background:#4c1d95;color:#fff;font-size:11px;font-weight:800;padding:7px 12px;border-radius:8px;">ATIVIDADES REALIZADAS</div>'
+    +'<div style="background:#fff;border:1px solid #e2e2ec;border-top:none;border-radius:0 0 8px 8px;padding:8px 12px;">'+atividadesRealizadasListHTML(acts)+'</div>'
   +'</div>';
 
-  var atividadesHeader='<div style="padding:12px 32px 0;">'
-    +'<div style="background:#4c1d95;color:#fff;font-size:12px;font-weight:800;padding:8px 14px;border-radius:8px;">ATIVIDADES REALIZADAS</div>'
-    +'<div style="background:#fff;border:1px solid #e2e2ec;border-top:none;border-radius:0 0 8px 8px;padding:10px 14px;">'+atividadesRealizadasListHTML(acts)+'</div>'
-  +'</div>';
-
-  var atividadesCards='<div style="padding:10px 32px 0;display:flex;flex-direction:column;gap:10px;">';
+  var atividadesCards='<div style="padding:8px 28px 0;display:flex;flex-direction:column;gap:8px;">';
   acts.forEach(function(a,i){ atividadesCards+=atividadeCardHTML(a,i); });
   atividadesCards+='</div>';
 
-  var bottomRow='<div style="padding:12px 32px 0;display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
+  var bottomRow='<div style="padding:10px 28px 0;display:flex;flex-direction:column;gap:8px;">'
     +cardWrapIco('<span>&#10060;</span><span>ATIVIDADES NAO REALIZADAS</span>', listBoxHTML(devs,'Nenhum desvio registrado','Desvio '))
     +cardWrapIco('<span>&#9888;&#65039;</span><span>PENDENCIAS ENCONTRADAS</span>', listBoxHTML(pends,'Nenhuma pendencia registrada','Pendencia '))
   +'</div>';
 
-  var footer='<div style="margin-top:14px;padding:16px 32px;border-top:2px solid #e0d5f5;display:flex;justify-content:space-between;align-items:flex-end;font-size:10.5px;color:#777;">'
-      +'<div style="max-width:320px;">Relatorio gerado automaticamente pelo Sistema de Relatorios Operacionais CSN Cimentos</div>'
+  var footer='<div style="margin-top:12px;padding:14px 28px;border-top:2px solid #e0d5f5;display:flex;justify-content:space-between;align-items:flex-end;font-size:9.5px;color:#777;">'
+      +'<div style="max-width:260px;">Relatorio gerado automaticamente pelo Sistema de Relatorios Operacionais CSN Cimentos</div>'
       +'<div style="text-align:center;">'
-        +'<div style="font-size:10px;color:#888;margin-bottom:2px;">Responsavel:</div>'
-        +'<div style="font-family:\'Dancing Script\',cursive;font-size:30px;color:#1e0a4d;line-height:1;">'+escHtml(properCase(r.resp))+'</div>'
-        +'<div style="font-size:10px;color:#555;font-weight:700;border-top:1px solid #ccc;padding-top:3px;margin-top:2px;">'+escHtml(properCase(r.resp))+(r.cargo?' - '+escHtml(properCase(r.cargo)):'')+'</div>'
+        +'<div style="font-size:9px;color:#888;margin-bottom:2px;">Responsavel:</div>'
+        +'<div style="font-family:\'Dancing Script\',cursive;font-size:26px;color:#1e0a4d;line-height:1;">'+escHtml(properCase(r.resp))+'</div>'
+        +'<div style="font-size:9px;color:#555;font-weight:700;border-top:1px solid #ccc;padding-top:3px;margin-top:2px;">'+escHtml(properCase(r.resp))+(r.cargo?' - '+escHtml(properCase(r.cargo)):'')+'</div>'
       +'</div>'
       +'<div>Gerado em: '+new Date().toLocaleString('pt-BR')+'</div>'
     +'</div>';
 
-  return '<div style="width:'+W+'px;background:#fff;font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;box-sizing:border-box;">'
-    +header+row1+row2+row3+atividadesHeader+atividadesCards+bottomRow+footer
+  var minH=Math.round(W*297/210);
+  return '<div style="width:'+W+'px;min-height:'+minH+'px;background:#fff;font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;box-sizing:border-box;">'
+    +header+idCard+ausenciasCard+atividadesHeader+atividadesCards+bottomRow+footer
   +'</div>';
 }
 
@@ -4470,7 +4478,7 @@ async function renderPreventivaReportOffscreen(r){
   }
   if(!window.html2canvas){toast('Erro: biblioteca de imagem indisponivel');return null;}
   var host=document.createElement('div');
-  host.style.cssText='position:fixed;left:-99999px;top:0;width:1600px;background:#fff;z-index:-1;';
+  host.style.cssText='position:fixed;left:-99999px;top:0;width:1200px;background:#fff;z-index:-1;';
   host.innerHTML=buildPreventivaReportHTML(r);
   document.body.appendChild(host);
   try{
@@ -4505,8 +4513,8 @@ async function generatePDFFromReport(r, photos){
   if(!canvas){toast('Erro ao gerar PDF');return;}
   try{
     var jsPDF=window.jspdf.jsPDF;
-    var doc=new jsPDF({orientation:'l',unit:'mm',format:'a4'});
-    var W=297,H=210;
+    var doc=new jsPDF({orientation:'p',unit:'mm',format:'a4'});
+    var W=210,H=297;
     var pageHeightPx=Math.floor(H*canvas.width/W);
     var totalPages=Math.max(1,Math.ceil(canvas.height/pageHeightPx));
     for(var p=0;p<totalPages;p++){
