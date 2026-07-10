@@ -1081,6 +1081,16 @@ body.dark .force-filter-btn.act{background:linear-gradient(135deg,#1565C0,#1e3a5
       <div style="font-size:.95rem;font-weight:700;color:var(--g900);margin-bottom:12px;display:flex;align-items:center;gap:7px">&#128308; Pendencias Encontradas</div>
       <div id="pend-list"></div>
       <button class="add-btn" onclick="addPend()">&#43; Adicionar Pendencia</button>
+      <div style="height:1px;background:var(--g200);margin:20px 0"></div>
+      <div style="font-size:.95rem;font-weight:700;color:var(--g900);margin-bottom:12px;display:flex;align-items:center;gap:7px">&#9888;&#65039; Riscos Envolvidos (opcional)</div>
+      <div id="risco-list"></div>
+      <button class="add-btn" onclick="addRisco()">&#43; Adicionar Risco</button>
+      <div style="height:1px;background:var(--g200);margin:20px 0"></div>
+      <div style="font-size:.95rem;font-weight:700;color:var(--g900);margin-bottom:12px;display:flex;align-items:center;gap:7px">&#128680; Alerta Critico (opcional)</div>
+      <textarea class="fi" id="f-alerta" rows="2" placeholder="Ex: O acumulo de material sobre leitos de cabos representa risco critico a operacao..."></textarea>
+      <div style="height:16px"></div>
+      <div style="font-size:.95rem;font-weight:700;color:var(--g900);margin-bottom:12px;display:flex;align-items:center;gap:7px">&#128203; Recomendacao Imediata (opcional)</div>
+      <textarea class="fi" id="f-recomendacao" rows="2" placeholder="Ex: Remover o material acumulado e implementar rotina preventiva de limpeza..."></textarea>
       <div style="height:16px"></div>
     </div>
     <div class="action-bar">
@@ -3078,7 +3088,7 @@ function goStep(n){
 
 function startReport(){
   S.acts=[];S.photos=[];S.abss=[];S.tipo='';S.typeKey='';S.hasDraft=false;updateDraftBadge();
-  ['act-list','abs-list','dev-list','pend-list'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='';});
+  ['act-list','abs-list','dev-list','pend-list','risco-list'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='';});
   document.querySelectorAll('.type-c').forEach(function(c){c.className='type-c';});
   document.querySelectorAll('.type-chk').forEach(function(c){c.innerHTML='';});
   document.getElementById('proc-sec').style.display='none';
@@ -3415,7 +3425,7 @@ function renderAbsences(){
 function rmAbs(i){S.abss.splice(i,1);renderAbsences();autosaveDraft();}
 
 // DEVS/PENDS
-var DVC=0,PDC=0;
+var DVC=0,PDC=0,RKC=0;
 function addDev(texto){
   DVC++;var id='dv'+DVC,div=document.createElement('div');div.className='dp-row';div.id=id;
   var ta=document.createElement('textarea');ta.className='fi';ta.style.cssText='margin:0;min-height:70px;flex:1';ta.placeholder='Atividade nao realizada e motivo...';
@@ -3432,11 +3442,33 @@ function addPend(texto){
   if(PDC>1){var rm=document.createElement('button');rm.className='dp-del';rm.textContent='x';rm.onclick=function(){div.remove();autosaveDraft();};div.appendChild(rm);}
   document.getElementById('pend-list').appendChild(div);
 }
+function addRisco(titulo,desc){
+  RKC++;var id='rk'+RKC,div=document.createElement('div');div.className='dp-row';div.id=id;div.style.cssText='align-items:flex-start;';
+  var col=document.createElement('div');col.style.cssText='flex:1;display:flex;flex-direction:column;gap:6px;';
+  var ti=document.createElement('input');ti.type='text';ti.className='fi';ti.style.cssText='margin:0';ti.placeholder='Titulo do risco (ex: Sobreaquecimento)';
+  if(titulo)ti.value=titulo;
+  var ta=document.createElement('textarea');ta.className='fi';ta.style.cssText='margin:0;min-height:55px';ta.placeholder='Descricao do risco...';
+  if(desc)ta.value=desc;
+  ti.addEventListener('input',autosaveDraft);ta.addEventListener('input',autosaveDraft);
+  col.appendChild(ti);col.appendChild(ta);div.appendChild(col);
+  var rm=document.createElement('button');rm.className='dp-del';rm.textContent='x';rm.onclick=function(){div.remove();autosaveDraft();};div.appendChild(rm);
+  document.getElementById('risco-list').appendChild(div);
+}
+function getRiscosFromForm(){
+  var out=[];
+  document.querySelectorAll('#risco-list > div').forEach(function(d){
+    var ti=d.querySelector('input'), ta=d.querySelector('textarea');
+    var titulo=(ti&&ti.value.trim())||'', desc=(ta&&ta.value.trim())||'';
+    if(titulo||desc) out.push({titulo:titulo,desc:desc});
+  });
+  return out;
+}
+
 
 // DRAFT
 function autosaveDraft(){
   if(!S.inReport)return;
-  var d={step:S.step,acts:S.acts,photos:S.photos,abss:S.abss,devs:[],pends:[],
+  var d={step:S.step,acts:S.acts,photos:S.photos,abss:S.abss,devs:[],pends:[],riscos:[],
     tipo:S.tipo,typeKey:S.typeKey,
     resp:document.getElementById('f-resp')?document.getElementById('f-resp').value:'',
     cargo:document.getElementById('f-cargo')?document.getElementById('f-cargo').value:'',
@@ -3444,9 +3476,12 @@ function autosaveDraft(){
     hh:document.getElementById('f-hh')?document.getElementById('f-hh').value:'',
     om:document.getElementById('f-om')?document.getElementById('f-om').value:'',
     dds:document.getElementById('f-dds')?document.getElementById('f-dds').value:'',
+    alerta:document.getElementById('f-alerta')?document.getElementById('f-alerta').value:'',
+    recomendacao:document.getElementById('f-recomendacao')?document.getElementById('f-recomendacao').value:'',
     equip:''};
   document.querySelectorAll('#dev-list textarea').forEach(function(t){if(t.value.trim())d.devs.push(t.value);});
   document.querySelectorAll('#pend-list textarea').forEach(function(t){if(t.value.trim())d.pends.push(t.value);});
+  d.riscos=getRiscosFromForm();
   try{localStorage.setItem(SK.draft,JSON.stringify(d));S.hasDraft=true;updateDraftBadge();}catch(e){}
   // Firebase sync (nao trava o app)
   clearTimeout(S._dt);
@@ -3556,7 +3591,7 @@ function applyDraft(d){
   S.tipo=d.tipo||'';S.typeKey=d.typeKey||'';
   var fields={
     'f-data':'data','f-hh':'hh','f-om':'om','f-dds':'dds',
-    'f-resp':'resp','f-cargo':'cargo'
+    'f-resp':'resp','f-cargo':'cargo','f-alerta':'alerta','f-recomendacao':'recomendacao'
   };
   Object.keys(fields).forEach(function(id){
     var el=document.getElementById(id);if(el&&d[fields[id]])el.value=d[fields[id]];
@@ -3564,6 +3599,7 @@ function applyDraft(d){
   S.inReport=true;renderActivities();renderAbsences();
   if(d.devs&&d.devs.length)d.devs.forEach(function(t){addDev(t);});
   if(d.pends&&d.pends.length)d.pends.forEach(function(t){addPend(t);});
+  if(d.riscos&&d.riscos.length)d.riscos.forEach(function(rk){addRisco(rk.titulo,rk.desc);});
   if(S.typeKey)selType(S.tipo,S.typeKey,S.typeKey==='prev'?'blue':S.typeKey==='cor'?'red':S.typeKey==='mel'?'grn':'org');
   goStep(d.step||1);toast('Rascunho carregado!');
 }
@@ -3634,6 +3670,9 @@ function sendReport(){
     dds:document.getElementById('f-dds').value||'',
     equip:S.acts.length>0&&S.acts[0].equip?S.acts[0].equip:'',
     acts:S.acts.slice(),abss:S.abss.slice(),devs:devs,pends:pends,
+    riscos:getRiscosFromForm(),
+    alerta:document.getElementById('f-alerta')?document.getElementById('f-alerta').value:'',
+    recomendacao:document.getElementById('f-recomendacao')?document.getElementById('f-recomendacao').value:'',
     photoCount:getAllPhotos().length,
     procs:Array.from(document.querySelectorAll('input[name="proc"]:checked')).map(function(c){return c.value;})
   };
@@ -4282,6 +4321,9 @@ function makeWPP(){
     acts:S.acts,abss:S.abss,
     devs:Array.from(document.querySelectorAll('#dev-list textarea')).map(function(t){return t.value;}).filter(Boolean),
     pends:Array.from(document.querySelectorAll('#pend-list textarea')).map(function(t){return t.value.toUpperCase();}).filter(Boolean),
+    riscos:getRiscosFromForm(),
+    alerta:document.getElementById('f-alerta')?document.getElementById('f-alerta').value:'',
+    recomendacao:document.getElementById('f-recomendacao')?document.getElementById('f-recomendacao').value:'',
     photoCount:getAllPhotos().length,
     procs:Array.from(document.querySelectorAll('input[name="proc"]:checked')).map(function(c){return c.value;})
   };
@@ -4311,6 +4353,9 @@ async function makePDF(){
     acts:S.acts,abss:S.abss,
     devs:Array.from(document.querySelectorAll('#dev-list textarea')).map(function(t){return t.value;}).filter(Boolean),
     pends:Array.from(document.querySelectorAll('#pend-list textarea')).map(function(t){return t.value.toUpperCase();}).filter(Boolean),
+    riscos:getRiscosFromForm(),
+    alerta:document.getElementById('f-alerta')?document.getElementById('f-alerta').value:'',
+    recomendacao:document.getElementById('f-recomendacao')?document.getElementById('f-recomendacao').value:'',
     procs:Array.from(document.querySelectorAll('input[name="proc"]:checked')).map(function(c){return c.value;})
   };
   await generatePDFFromReport(r,getAllPhotos(S.acts));
@@ -4334,49 +4379,70 @@ function cardWrapIco(titleHtml, inner, extraStyle){
     +'</div>';
 }
 
-function infoCardIco(iconSrc, label, value){
-  return '<div style="background:#fff;border:1px solid #e2e2ec;border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px;">'
-    +'<img src="'+iconSrc+'" style="width:26px;height:26px;object-fit:contain;flex-shrink:0;">'
-    +'<div style="min-width:0;">'
-      +'<div style="font-size:8px;color:#999;font-weight:800;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escHtml(label.toUpperCase())+'</div>'
-      +'<div style="font-size:11.5px;color:#1a1a2e;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escHtml(value)+'</div>'
-    +'</div>'
-  +'</div>';
+function idBar(items){
+  var html='<div style="background:#fff;border:1px solid #e2e2ec;border-radius:8px;display:flex;overflow:hidden;">';
+  items.forEach(function(it,i){
+    html+='<div style="flex:1;min-width:0;padding:10px 12px;display:flex;align-items:flex-start;gap:8px;'+(i>0?'border-left:1px solid #eee;':'')+'">'
+      +'<img src="'+it.icon+'" style="width:22px;height:22px;object-fit:contain;flex-shrink:0;margin-top:1px;">'
+      +'<div style="min-width:0;overflow:hidden;">'
+        +'<div style="font-size:8.5px;color:#999;font-weight:800;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escHtml(it.label.toUpperCase())+'</div>'
+        +'<div style="font-size:11.5px;color:#1a1a2e;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escHtml(it.value)+'</div>'
+        +(it.sub?'<div style="font-size:9px;color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escHtml(it.sub)+'</div>':'')
+      +'</div>'
+    +'</div>';
+  });
+  html+='</div>';
+  return html;
 }
 
 function atividadesRealizadasListHTML(acts){
   if(!acts || !acts.length) return '<div style="font-size:12px;color:#999;">Nenhuma atividade registrada</div>';
   var html='<ol style="margin:0;padding-left:18px;">';
   acts.forEach(function(a){
-    html+='<li style="font-size:12px;color:#333;padding:2px 0;">'+escHtml(properCase(a.desc||a.title||'Atividade'))+'</li>';
+    html+='<li style="font-size:11.5px;color:#333;padding:3px 0;line-height:1.4;">'+escHtml(properCase(a.desc||a.title||'Atividade'))+'</li>';
   });
   html+='</ol>';
   return html;
 }
 
-function atividadeCardHTML(a, idx){
+function atividadeColumnHTML(a, idx, r){
+  var tituloCompleto=properCase(a.desc||a.title||'Atividade');
   var colabs=(a.cols||[]).map(function(n){return properCase(n);}).join(', ')||'-';
   var fotos=(a.photos||[]);
   var fotosHtml='';
   if(fotos.length){
-    fotosHtml='<div style="display:grid;grid-template-columns:repeat('+Math.min(fotos.length,4)+',1fr);gap:6px;margin-top:6px;">';
-    fotos.slice(0,4).forEach(function(f){
-      fotosHtml+=coverImgDiv(f,'100%','80px','6px');
+    fotosHtml='<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">';
+    fotos.forEach(function(f){
+      fotosHtml+=coverImgDiv(f,'110px','110px','6px');
     });
     fotosHtml+='</div>';
   } else {
     fotosHtml='<div style="font-size:10.5px;color:#bbb;margin-top:4px;">Sem fotos anexadas</div>';
   }
-  return cardWrapIco(
-    '<span>&#128295;</span><span>ATIVIDADE '+(idx+1)+' &nbsp;|&nbsp; '+escHtml(properCase(a.desc||a.title||'Atividade').toUpperCase())+'</span>',
+
+  var atividadeCard=cardWrapIco(
+    '<span>&#128295;</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">ATIVIDADE '+(idx+1)+' &nbsp;|&nbsp; '+escHtml(tituloCompleto.toUpperCase())+'</span>',
     '<div style="font-size:10.5px;color:#666;margin-bottom:4px;"><b>Colaboradores envolvidos:</b> '+escHtml(colabs)+'</div>'
     +'<div style="font-size:9.5px;color:#999;font-weight:700;text-transform:uppercase;margin-top:6px;">Registro fotografico</div>'
     +fotosHtml
   );
+
+  var detalhamento=cardWrapIco(
+    '<span>&#9888;&#65039;</span><span>DETALHAMENTO</span>',
+    '<div style="font-size:9.5px;font-weight:800;color:#1a1a2e;line-height:1.35;margin-bottom:8px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">'+(idx+1)+' - '+escHtml(tituloCompleto.toUpperCase())+'</div>'
+    +'<div style="font-size:9px;color:#999;font-weight:800;margin-top:6px;">EQUIP:</div>'
+    +'<div style="font-size:10.5px;color:#333;margin-bottom:6px;">'+escHtml(r.equip?properCase(r.equip):(r.tipo||'-'))+'</div>'
+    +'<div style="font-size:9px;color:#999;font-weight:800;">EQUIPE:</div>'
+    +'<div style="font-size:10.5px;color:#333;">'+escHtml(colabs)+'</div>'
+  );
+
+  return '<div style="display:flex;flex-direction:column;gap:8px;">'
+    +atividadeCard+detalhamento
+  +'</div>';
 }
 
 function ausenciasListHTML(abss){
-  if(!abss || !abss.length) return '<div style="font-size:11px;color:#999;">Nenhuma ausencia registrada</div>';
+  if(!abss || !abss.length) return '<div style="font-size:11px;color:#333;">Nenhuma ausencia no dia.</div>';
   var html='<div>';
   abss.forEach(function(a,i){
     html+='<div style="font-size:11px;color:#333;padding:2px 0;">'+(i+1)+'. '+escHtml(properCase(a.name||''))+(a.reason?' \u2014 '+escHtml(a.reason):'')+'</div>';
@@ -4385,90 +4451,91 @@ function ausenciasListHTML(abss){
   return html;
 }
 
-function listBoxHTML(items, emptyMsg, prefix){
-  if(!items || !items.length) return '<div style="font-size:11px;color:#999;">'+emptyMsg+'</div>';
+function listBoxHTML(items, emptyPlaceholder, prefix){
+  var arr=(items&&items.length)?items:[emptyPlaceholder];
   var html='<div>';
-  items.forEach(function(t,i){
-    html+='<div style="font-size:11px;color:#333;padding:3px 0;border-top:'+(i>0?'1px solid #eee':'none')+';"><b>'+(prefix||'')+(i+1)+':</b> '+escHtml(t)+'</div>';
+  arr.forEach(function(t,i){
+    html+='<div style="font-size:11px;color:#333;padding:4px 0;border-top:'+(i>0?'1px solid #eee':'none')+';"><b>'+(prefix||'')+(i+1)+':</b> '+escHtml(t)+'</div>';
   });
   html+='</div>';
   return html;
 }
 
-// Monta o HTML completo do Relatorio de Atividades (Preventiva/Corretiva/etc)
-function idRowIco(iconSrc, label, value){
-  return '<div style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid #f0eef7;">'
-    +'<img src="'+iconSrc+'" style="width:24px;height:24px;object-fit:contain;flex-shrink:0;">'
-    +'<div style="width:150px;flex-shrink:0;font-size:9.5px;color:#999;font-weight:800;letter-spacing:.2px;">'+escHtml(label.toUpperCase())+'</div>'
-    +'<div style="font-size:12px;color:#1a1a2e;font-weight:700;">'+escHtml(value)+'</div>'
+function preventivaHeaderHTML(){
+  return '<div style="height:6px;background:#6b21a8;"></div>'
+    +'<div style="background:#fff;padding:20px 28px 14px;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:2px solid #e0d5f5;">'
+      +'<div>'
+        +'<div style="font-size:27px;font-weight:800;letter-spacing:.3px;color:#151022;">RELATORIO DE ATIVIDADES</div>'
+        +'<div style="font-size:11.5px;color:#6b21a8;font-weight:700;letter-spacing:.5px;margin-top:2px;">EQUIPE DE MANUTENCAO</div>'
+      +'</div>'
+      +'<div style="text-align:right;">'
+        +'<div style="font-size:19px;font-weight:800;color:#1e0a4d;">CSN</div>'
+        +'<div style="font-size:11px;font-weight:700;color:#6b21a8;margin-top:-3px;">CIMENTOS</div>'
+      +'</div>'
+    +'</div>';
+}
+
+function buildPreventivaPageA(r){
+  var acts=r.acts||[];
+  var abss=r.abss||[];
+  var W=1200;
+
+  var row1='<div style="padding:14px 28px 0;">'
+    +idBar([
+      {icon:ICO_DATA,label:'Data',value:r.date||'-'},
+      {icon:ICO_RESPONSAVEL,label:'Responsavel',value:properCase(r.resp),sub:r.cargo?properCase(r.cargo):''},
+      {icon:ICO_EMPRESA,label:'Empresa',value:'CSN Cimentos'},
+      {icon:ICO_EQUIPE,label:'Equipe',value:'Manutencao'}
+    ])
+  +'</div>';
+
+  var row2='<div style="padding:10px 28px 0;">'
+    +idBar([
+      {icon:ICO_TIPO_ATIV,label:'Tipo de Atividade',value:r.tipo||'-'},
+      {icon:ICO_EQUIPAMENTO,label:'Equipamento / Area',value:r.equip||'-'},
+      {icon:ICO_CLASSIFICACAO,label:'Classificacao',value:r.tipo||'-'},
+      {icon:ICO_MAO_DE_OBRA,label:'Mao de Obra',value:r.hh?(r.hh+' colaboradores'):'-'},
+      {icon:ICO_EMPRESA,label:'Ordens OM',value:r.om||'-'}
+    ])
+  +'</div>';
+
+  var row3='<div style="padding:10px 28px 0;display:grid;grid-template-columns:1.3fr 1fr;gap:10px;align-items:stretch;">'
+    +cardWrapIco('<img src="'+ICO_EQUIPE+'" style="width:16px;height:16px;"><span>COORDENADOR / ENG. ESPECIALISTA &nbsp;|&nbsp; TEMA DO DDS</span>', '<div style="font-size:11px;color:#333;">'+(r.dds?escHtml(properCase(r.dds)):'--')+' &nbsp;|&nbsp; DDS: '+escHtml(r.dds?properCase(r.dds):'-')+'</div>', 'height:100%;box-sizing:border-box;')
+    +cardWrapIco('<img src="'+ICO_AUSENCIAS+'" style="width:16px;height:16px;"><span>AUSENCIAS DO DIA</span>', ausenciasListHTML(abss), 'height:100%;box-sizing:border-box;')
+  +'</div>';
+
+  var atividadesHeader='<div style="padding:12px 28px 0;">'
+    +'<div style="background:#4c1d95;color:#fff;font-size:11px;font-weight:800;padding:8px 14px;border-radius:8px 8px 0 0;">ATIVIDADES REALIZADAS</div>'
+    +'<div style="background:#fff;border:1px solid #e2e2ec;border-top:none;border-radius:0 0 8px 8px;padding:8px 14px;">'+atividadesRealizadasListHTML(acts)+'</div>'
+  +'</div>';
+
+  var atividadesRows='<div style="padding:10px 28px 14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start;">';
+  acts.forEach(function(a,i){ atividadesRows+=atividadeColumnHTML(a,i,r); });
+  atividadesRows+='</div>';
+
+  var minH=Math.round(W*297/210);
+  return '<div style="width:'+W+'px;min-height:'+minH+'px;background:#fff;font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;box-sizing:border-box;">'
+    +preventivaHeaderHTML()+row1+row2+row3+atividadesHeader+atividadesRows
   +'</div>';
 }
 
-function buildPreventivaReportHTML(r){
-  var acts=r.acts||[];
-  var abss=r.abss||[];
+function buildPreventivaPageB(r){
   var devs=r.devs||[];
   var pends=r.pends||[];
   var W=1200;
 
-  var header='<div style="background:#1e0a4d;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;color:#fff;">'
-      +'<div style="display:flex;align-items:center;gap:14px;">'
-        +'<div style="width:46px;height:46px;background:rgba(255,255,255,.15);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:22px;">\uD83D\uDCCB</div>'
-        +'<div><div style="font-size:26px;font-weight:800;letter-spacing:.5px;">RELATORIO DE ATIVIDADES</div><div style="font-size:11.5px;color:#d8c8f5;letter-spacing:1px;margin-top:2px;">EQUIPE DE MANUTENCAO</div></div>'
-      +'</div>'
-      +'<img src="'+CSN_LOGO_B64+'" style="height:52px;">'
-    +'</div>';
-
-  var idCard='<div style="padding:14px 28px 0;">'
-    +'<div style="background:#fff;border:1px solid #e2e2ec;border-radius:8px;padding:4px 12px;">'
-      +idRowIco(ICO_DATA,'Data',r.date||'-')
-      +idRowIco(ICO_RESPONSAVEL,'Responsavel',properCase(r.resp)+(r.cargo?' - '+properCase(r.cargo):''))
-      +idRowIco(ICO_EMPRESA,'Empresa','CSN Cimentos')
-      +idRowIco(ICO_EQUIPE,'Equipe','Manutencao')
-      +idRowIco(ICO_TIPO_ATIV,'Tipo de Atividade',r.tipo||'-')
-      +idRowIco(ICO_EQUIPAMENTO,'Equipamento / Area',r.equip||'-')
-      +idRowIco(ICO_CLASSIFICACAO,'Classificacao',r.tipo||'-')
-      +(r.hh?idRowIco(ICO_MAO_DE_OBRA,'Mao de Obra',r.hh+' colaboradores'):'')
-      +(r.om?idRowIco(ICO_EMPRESA,'Ordens OM',r.om):'')
-      +idRowIco(ICO_EQUIPE,'Supervisores / Lider do DDS',r.dds?properCase(r.dds):'-')
-    +'</div>'
+  var bottomRow='<div style="padding:14px 28px 0;display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:stretch;">'
+    +cardWrapIco('<span>&#10060;</span><span>ATIVIDADES NAO REALIZADAS</span>', listBoxHTML(devs,'Sem desvios','Desvio '), 'height:100%;box-sizing:border-box;')
+    +cardWrapIco('<span>&#9888;&#65039;</span><span>PENDENCIAS ENCONTRADAS</span>', listBoxHTML(pends,'SEM PENDENCIAS','Pendencia '), 'height:100%;box-sizing:border-box;')
   +'</div>';
-
-  var ausenciasCard='<div style="padding:10px 28px 0;">'
-    +cardWrapIco('<img src="'+ICO_AUSENCIAS+'" style="width:16px;height:16px;"><span>AUSENCIAS DO DIA</span>', ausenciasListHTML(abss))
-  +'</div>';
-
-  var atividadesHeader='<div style="padding:10px 28px 0;">'
-    +'<div style="background:#4c1d95;color:#fff;font-size:11px;font-weight:800;padding:7px 12px;border-radius:8px;">ATIVIDADES REALIZADAS</div>'
-    +'<div style="background:#fff;border:1px solid #e2e2ec;border-top:none;border-radius:0 0 8px 8px;padding:8px 12px;">'+atividadesRealizadasListHTML(acts)+'</div>'
-  +'</div>';
-
-  var atividadesCards='<div style="padding:8px 28px 0;display:flex;flex-direction:column;gap:8px;">';
-  acts.forEach(function(a,i){ atividadesCards+=atividadeCardHTML(a,i); });
-  atividadesCards+='</div>';
-
-  var bottomRow='<div style="padding:10px 28px 0;display:flex;flex-direction:column;gap:8px;">'
-    +cardWrapIco('<span>&#10060;</span><span>ATIVIDADES NAO REALIZADAS</span>', listBoxHTML(devs,'Nenhum desvio registrado','Desvio '))
-    +cardWrapIco('<span>&#9888;&#65039;</span><span>PENDENCIAS ENCONTRADAS</span>', listBoxHTML(pends,'Nenhuma pendencia registrada','Pendencia '))
-  +'</div>';
-
-  var footer='<div style="margin-top:12px;padding:14px 28px;border-top:2px solid #e0d5f5;display:flex;justify-content:space-between;align-items:flex-end;font-size:9.5px;color:#777;">'
-      +'<div style="max-width:260px;">Relatorio gerado automaticamente pelo Sistema de Relatorios Operacionais CSN Cimentos</div>'
-      +'<div style="text-align:center;">'
-        +'<div style="font-size:9px;color:#888;margin-bottom:2px;">Responsavel:</div>'
-        +'<div style="font-family:\'Dancing Script\',cursive;font-size:26px;color:#1e0a4d;line-height:1;">'+escHtml(properCase(r.resp))+'</div>'
-        +'<div style="font-size:9px;color:#555;font-weight:700;border-top:1px solid #ccc;padding-top:3px;margin-top:2px;">'+escHtml(properCase(r.resp))+(r.cargo?' - '+escHtml(properCase(r.cargo)):'')+'</div>'
-      +'</div>'
-      +'<div>Gerado em: '+new Date().toLocaleString('pt-BR')+'</div>'
-    +'</div>';
 
   var minH=Math.round(W*297/210);
   return '<div style="width:'+W+'px;min-height:'+minH+'px;background:#fff;font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;box-sizing:border-box;">'
-    +header+idCard+ausenciasCard+atividadesHeader+atividadesCards+bottomRow+footer
+    +preventivaHeaderHTML()+bottomRow
   +'</div>';
 }
 
-async function renderPreventivaReportOffscreen(r){
+async function renderHtmlOffscreen(html, widthPx){
   if(!window.html2canvas){
     await new Promise(function(res){
       var s=document.createElement('script');
@@ -4478,8 +4545,8 @@ async function renderPreventivaReportOffscreen(r){
   }
   if(!window.html2canvas){toast('Erro: biblioteca de imagem indisponivel');return null;}
   var host=document.createElement('div');
-  host.style.cssText='position:fixed;left:-99999px;top:0;width:1200px;background:#fff;z-index:-1;';
-  host.innerHTML=buildPreventivaReportHTML(r);
+  host.style.cssText='position:fixed;left:-99999px;top:0;width:'+widthPx+'px;background:#fff;z-index:-1;';
+  host.innerHTML=html;
   document.body.appendChild(host);
   try{
     var imgs=host.querySelectorAll('img');
@@ -4491,11 +4558,50 @@ async function renderPreventivaReportOffscreen(r){
     var canvas=await window.html2canvas(host.firstElementChild,{scale:2.2,backgroundColor:'#ffffff',useCORS:true,imageTimeout:0});
     return canvas;
   }catch(e){
-    console.warn('renderPreventivaReportOffscreen:',e.message);
+    console.warn('renderHtmlOffscreen:',e.message);
     return null;
   }finally{
     host.remove();
   }
+}
+
+// Desenha o rodape padrao do relatorio (CSN | CIMENTOS ... PAGINA X DE Y) direto no jsPDF,
+// assim ele se repete de forma identica e correta em toda pagina, sem depender do canvas.
+function drawPreventivaFooter(doc, W, H, pageNum, totalPages){
+  var y=H-12;
+  doc.setDrawColor(224,213,245);doc.setLineWidth(0.3);doc.line(10,y-4,W-10,y-4);
+  doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setTextColor(30,10,77);
+  doc.text('CSN',10,y);
+  doc.setFont('helvetica','normal');doc.setTextColor(90,90,90);
+  doc.text('  CIMENTOS',15,y);
+  doc.setFontSize(9);doc.text('RELATORIO TECNICO DE INSPECAO',W/2,y,{align:'center'});
+  var label='PAGINA '+pageNum+' DE '+totalPages;
+  doc.setFont('helvetica','bold');doc.setFontSize(9);
+  var tw=doc.getTextWidth(label)+10;
+  doc.setFillColor(76,29,149);
+  doc.roundedRect(W-10-tw,y-5,tw,7,3.5,3.5,'F');
+  doc.setTextColor(255,255,255);
+  doc.text(label,W-10-tw/2,y-0.3,{align:'center'});
+}
+
+// Fatia um canvas alto em paginas A4 e adiciona ao doc, com rodape numerado.
+// Retorna quantas paginas fisicas esse canvas ocupou.
+function addCanvasAsPages(doc, canvas, W, H, startPageNum, totalPages, isFirstOverall){
+  var pageHeightPx=Math.floor(H*canvas.width/W);
+  var n=Math.max(1,Math.ceil(canvas.height/pageHeightPx));
+  for(var p=0;p<n;p++){
+    if(!(isFirstOverall && p===0)) doc.addPage();
+    var sy=p*pageHeightPx;
+    var sh=Math.min(pageHeightPx, canvas.height-sy);
+    var slice=document.createElement('canvas');
+    slice.width=canvas.width; slice.height=sh;
+    slice.getContext('2d').drawImage(canvas,0,sy,canvas.width,sh,0,0,canvas.width,sh);
+    var sliceData=slice.toDataURL('image/jpeg',0.95);
+    var drawHmm=sh*(W/canvas.width);
+    doc.addImage(sliceData,'JPEG',0,0,W,drawHmm);
+    drawPreventivaFooter(doc, W, H, startPageNum+p, totalPages);
+  }
+  return n;
 }
 
 async function generatePDFFromReport(r, photos){
@@ -4509,25 +4615,19 @@ async function generatePDFFromReport(r, photos){
     if(!window.jspdf){toast('Erro: jsPDF indisponivel');return;}
   }
   toast('Gerando PDF...');
-  var canvas=await renderPreventivaReportOffscreen(r);
-  if(!canvas){toast('Erro ao gerar PDF');return;}
+  var canvasA=await renderHtmlOffscreen(buildPreventivaPageA(r), 1200);
+  var canvasB=await renderHtmlOffscreen(buildPreventivaPageB(r), 1200);
+  if(!canvasA){toast('Erro ao gerar PDF');return;}
   try{
     var jsPDF=window.jspdf.jsPDF;
     var doc=new jsPDF({orientation:'p',unit:'mm',format:'a4'});
     var W=210,H=297;
-    var pageHeightPx=Math.floor(H*canvas.width/W);
-    var totalPages=Math.max(1,Math.ceil(canvas.height/pageHeightPx));
-    for(var p=0;p<totalPages;p++){
-      if(p>0) doc.addPage();
-      var sy=p*pageHeightPx;
-      var sh=Math.min(pageHeightPx, canvas.height-sy);
-      var slice=document.createElement('canvas');
-      slice.width=canvas.width; slice.height=sh;
-      slice.getContext('2d').drawImage(canvas,0,sy,canvas.width,sh,0,0,canvas.width,sh);
-      var sliceData=slice.toDataURL('image/jpeg',0.95);
-      var drawHmm=sh*(W/canvas.width);
-      doc.addImage(sliceData,'JPEG',0,0,W,drawHmm);
-    }
+    var pageHeightPx=Math.floor(H*canvasA.width/W);
+    var nA=Math.max(1,Math.ceil(canvasA.height/pageHeightPx));
+    var nB=canvasB?Math.max(1,Math.ceil(canvasB.height/pageHeightPx)):0;
+    var totalPages=nA+nB;
+    addCanvasAsPages(doc, canvasA, W, H, 1, totalPages, true);
+    if(canvasB) addCanvasAsPages(doc, canvasB, W, H, nA+1, totalPages, false);
     var fn='Relatorio_Atividades_'+(r.date||'').replace(/\//g,'-')+'.pdf';
     if(navigator.share && navigator.canShare){
       var bl=doc.output('blob');
