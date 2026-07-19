@@ -217,7 +217,10 @@ select.fi option{background:#fff}
 .proc-c.chk{border-color:var(--blue);background:var(--blue-lt)}
 .hist-chip{border:1.5px solid var(--g200);background:#fff;border-radius:8px;padding:7px 4px;font-size:.72rem;font-weight:700;color:var(--g600);cursor:pointer;font-family:var(--font)}
 .hist-chip.chk{border-color:var(--blue);background:var(--blue-lt);color:var(--blue)}
-.hist-date-hd{padding:10px 16px 6px;font-size:.72rem;font-weight:800;color:var(--g500);letter-spacing:.3px;background:var(--g50,#f7f8fc);text-transform:uppercase}
+.hist-date-hd{padding:10px 16px 6px;font-size:.72rem;font-weight:800;color:var(--g500);letter-spacing:.3px;background:var(--g100);text-transform:uppercase}
+body.dark .hist-chip{color:#0f0f1a}
+body.dark .hist-chip.chk{color:var(--blue)}
+body.dark .hist-date-hd{background:var(--blue-lt);color:#e9d8fd}
 .proc-c input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);flex-shrink:0}
 .proc-c span{font-size:.9rem;font-weight:500;color:var(--g800)}
 
@@ -1148,7 +1151,9 @@ body.dark .force-filter-btn.act{background:linear-gradient(135deg,#1565C0,#1e3a5
     </div>
     <div class="scroll">
       <div style="padding:14px 14px 0">
-        <input type="text" id="hist-search" class="fi" placeholder="Buscar por tecnico ou protocolo..." oninput="renderHistory()" style="margin-bottom:8px">
+        <label class="form-label">Buscar por Tecnico ou Protocolo</label>
+        <input type="text" id="hist-search" class="fi" placeholder="Digite o nome ou protocolo..." oninput="renderHistory()" style="margin-bottom:8px">
+        <label class="form-label">Data do Relatorio</label>
         <div style="display:flex;gap:8px;margin-bottom:8px">
           <input type="date" id="hist-filter-date" class="fi" style="flex:1;margin:0" onchange="renderHistory()">
           <button class="btn-back" style="flex:0 0 auto;padding:0 14px" onclick="clearHistFilters()">Limpar</button>
@@ -1158,7 +1163,7 @@ body.dark .force-filter-btn.act{background:linear-gradient(135deg,#1565C0,#1e3a5
           <button type="button" class="hist-chip" data-tipo="turno" onclick="setHistTipoFilter('turno')" style="flex:1">Turno</button>
           <button type="button" class="hist-chip" data-tipo="prevent" onclick="setHistTipoFilter('prevent')" style="flex:1">Preventiva</button>
         </div>
-        <div style="display:flex;gap:6px;margin-bottom:4px">
+        <div id="hist-letra-row" style="display:flex;gap:6px;margin-bottom:4px">
           <button type="button" class="hist-chip chk" data-letra="" onclick="setHistLetraFilter('')" style="flex:1">Todas</button>
           <button type="button" class="hist-chip" data-letra="A" onclick="setHistLetraFilter('A')" style="flex:1">A</button>
           <button type="button" class="hist-chip" data-letra="B" onclick="setHistLetraFilter('B')" style="flex:1">B</button>
@@ -3754,6 +3759,16 @@ function histFmtHeader(iso){
 function setHistTipoFilter(v){
   S._histTipo=v;
   document.querySelectorAll('.hist-chip[data-tipo]').forEach(function(b){b.classList.toggle('chk',b.getAttribute('data-tipo')===v);});
+  var letraRow=document.getElementById('hist-letra-row');
+  if(letraRow){
+    if(v==='prevent'){
+      letraRow.style.display='none';
+      S._histLetra='';
+      document.querySelectorAll('.hist-chip[data-letra]').forEach(function(b){b.classList.toggle('chk',b.getAttribute('data-letra')==='');});
+    } else {
+      letraRow.style.display='flex';
+    }
+  }
   renderHistory();
 }
 function setHistLetraFilter(v){
@@ -3767,6 +3782,7 @@ function clearHistFilters(){
   var d=document.getElementById('hist-filter-date'); if(d)d.value='';
   document.querySelectorAll('.hist-chip[data-tipo]').forEach(function(b){b.classList.toggle('chk',b.getAttribute('data-tipo')==='');});
   document.querySelectorAll('.hist-chip[data-letra]').forEach(function(b){b.classList.toggle('chk',b.getAttribute('data-letra')==='');});
+  var letraRow=document.getElementById('hist-letra-row'); if(letraRow) letraRow.style.display='flex';
   renderHistory();
 }
 
