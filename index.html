@@ -2462,7 +2462,7 @@ function generateTurnoWPPFromReport(r){
   L.push('');
   if(r.observacoes){L.push('\uD83D\uDCDD *OBSERVA\u00c7\u00d5ES*');L.push(r.observacoes);L.push('');}
   L.push('\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501');
-  L.push('_Gerado por Lima Store - Sistema de Relat\u00f3rios_');
+  L.push('_Gerado por Manuten\u00e7\u00e3o El\u00e9trica Cimentos - Sistema de Relat\u00f3rios_');
   var wa=document.getElementById('wt'); if(wa) wa.value=L.join('\n');
 }
 
@@ -4297,7 +4297,7 @@ function generateWPPFromReport(r){
   if(r.devs&&r.devs.length){L.push('\u26a0\ufe0f *DESVIOS*');L.push('\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501');r.devs.forEach(function(d,i){L.push((i+1)+'. '+d);});L.push('');}
   if(r.pends&&r.pends.length){L.push('\ud83d\udd34 *PEND\u00caNCI AS*');L.push('\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501');r.pends.forEach(function(p,i){L.push((i+1)+'. '+p.toUpperCase());});L.push('');}
   L.push('\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501');
-  L.push('_Gerado por Lima Store - Sistema de Relat\u00f3rios_');
+  L.push('_Gerado por Manuten\u00e7\u00e3o El\u00e9trica Cimentos - Sistema de Relat\u00f3rios_');
   document.getElementById('wt').value=L.join('\n');
 }
 
