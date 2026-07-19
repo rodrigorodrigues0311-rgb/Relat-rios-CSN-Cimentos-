@@ -215,6 +215,9 @@ select.fi option{background:#fff}
 /* PROC CHECKS */
 .proc-c{display:flex;align-items:center;gap:11px;padding:11px 13px;border:1.5px solid var(--g200);border-radius:var(--r);margin-bottom:8px;cursor:pointer;background:#fff;transition:all .2s}
 .proc-c.chk{border-color:var(--blue);background:var(--blue-lt)}
+.hist-chip{border:1.5px solid var(--g200);background:#fff;border-radius:8px;padding:7px 4px;font-size:.72rem;font-weight:700;color:var(--g600);cursor:pointer;font-family:var(--font)}
+.hist-chip.chk{border-color:var(--blue);background:var(--blue-lt);color:var(--blue)}
+.hist-date-hd{padding:10px 16px 6px;font-size:.72rem;font-weight:800;color:var(--g500);letter-spacing:.3px;background:var(--g50,#f7f8fc);text-transform:uppercase}
 .proc-c input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);flex-shrink:0}
 .proc-c span{font-size:.9rem;font-weight:500;color:var(--g800)}
 
@@ -1144,6 +1147,25 @@ body.dark .force-filter-btn.act{background:linear-gradient(135deg,#1565C0,#1e3a5
       </div>
     </div>
     <div class="scroll">
+      <div style="padding:14px 14px 0">
+        <input type="text" id="hist-search" class="fi" placeholder="Buscar por tecnico ou protocolo..." oninput="renderHistory()" style="margin-bottom:8px">
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input type="date" id="hist-filter-date" class="fi" style="flex:1;margin:0" onchange="renderHistory()">
+          <button class="btn-back" style="flex:0 0 auto;padding:0 14px" onclick="clearHistFilters()">Limpar</button>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:8px">
+          <button type="button" class="hist-chip chk" data-tipo="" onclick="setHistTipoFilter('')" style="flex:1">Todos</button>
+          <button type="button" class="hist-chip" data-tipo="turno" onclick="setHistTipoFilter('turno')" style="flex:1">Turno</button>
+          <button type="button" class="hist-chip" data-tipo="prevent" onclick="setHistTipoFilter('prevent')" style="flex:1">Preventiva</button>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:4px">
+          <button type="button" class="hist-chip chk" data-letra="" onclick="setHistLetraFilter('')" style="flex:1">Todas</button>
+          <button type="button" class="hist-chip" data-letra="A" onclick="setHistLetraFilter('A')" style="flex:1">A</button>
+          <button type="button" class="hist-chip" data-letra="B" onclick="setHistLetraFilter('B')" style="flex:1">B</button>
+          <button type="button" class="hist-chip" data-letra="C" onclick="setHistLetraFilter('C')" style="flex:1">C</button>
+          <button type="button" class="hist-chip" data-letra="D" onclick="setHistLetraFilter('D')" style="flex:1">D</button>
+        </div>
+      </div>
       <div style="background:#fff;margin:14px;border-radius:var(--r-lg);box-shadow:var(--sh);overflow:hidden;border:1px solid var(--g200)">
         <div id="hist-list" style="padding-top:4px"></div>
       </div>
@@ -3703,24 +3725,105 @@ function _loadHistLocal(){
   renderDashRecent();
 }
 
+// Normaliza a data do relatorio (que vem em formatos diferentes: 'YYYY-MM-DD' do Turno ou 'DD/MM/YYYY' da Preventiva) para 'YYYY-MM-DD'
+function histNormISO(dateStr){
+  var s=String(dateStr||'').trim();
+  if(!s) return '';
+  if(s.indexOf('/')>-1){ var p=s.split('/'); return p.length===3?(p[2]+'-'+p[1]+'-'+p[0]):''; }
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.substring(0,10);
+  return '';
+}
+function histFmtBR(iso){
+  if(!iso||iso.length<10) return '-';
+  var p=iso.substring(0,10).split('-');
+  return p.length===3?(p[2]+'/'+p[1]+'/'+p[0]):iso;
+}
+function histFmtHeader(iso){
+  if(!iso) return 'Data desconhecida';
+  var meses=['janeiro','fevereiro','marco','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  var p=iso.split('-'); if(p.length!==3) return histFmtBR(iso);
+  var d=new Date(iso+'T00:00:00');
+  var hoje=new Date(); hoje.setHours(0,0,0,0);
+  var ontem=new Date(hoje.getTime()-86400000);
+  var diso=d.toISOString().substring(0,10), hiso=hoje.toISOString().substring(0,10), oiso=ontem.toISOString().substring(0,10);
+  if(diso===hiso) return 'Hoje \u00b7 '+ +p[2]+' de '+meses[+p[1]-1]+' de '+p[0];
+  if(diso===oiso) return 'Ontem \u00b7 '+ +p[2]+' de '+meses[+p[1]-1]+' de '+p[0];
+  return +p[2]+' de '+meses[+p[1]-1]+' de '+p[0];
+}
+
+function setHistTipoFilter(v){
+  S._histTipo=v;
+  document.querySelectorAll('.hist-chip[data-tipo]').forEach(function(b){b.classList.toggle('chk',b.getAttribute('data-tipo')===v);});
+  renderHistory();
+}
+function setHistLetraFilter(v){
+  S._histLetra=v;
+  document.querySelectorAll('.hist-chip[data-letra]').forEach(function(b){b.classList.toggle('chk',b.getAttribute('data-letra')===v);});
+  renderHistory();
+}
+function clearHistFilters(){
+  S._histTipo=''; S._histLetra='';
+  var s=document.getElementById('hist-search'); if(s)s.value='';
+  var d=document.getElementById('hist-filter-date'); if(d)d.value='';
+  document.querySelectorAll('.hist-chip[data-tipo]').forEach(function(b){b.classList.toggle('chk',b.getAttribute('data-tipo')==='');});
+  document.querySelectorAll('.hist-chip[data-letra]').forEach(function(b){b.classList.toggle('chk',b.getAttribute('data-letra')==='');});
+  renderHistory();
+}
+
 function renderHistory(){
   var el=document.getElementById('hist-list');if(!el)return;
   if(!S.history.length){
     el.innerHTML='<div style="padding:40px 16px;text-align:center;color:var(--g400)"><div style="font-size:2rem;margin-bottom:10px">&#128203;</div>Nenhum relatorio enviado</div>';return;
   }
+  var searchEl=document.getElementById('hist-search');
+  var dateEl=document.getElementById('hist-filter-date');
+  var q=(searchEl?searchEl.value:'').trim().toLowerCase();
+  var dFilter=(dateEl?dateEl.value:'')||'';
+  var tipoFilter=S._histTipo||'';
+  var letraFilter=S._histLetra||'';
+
+  var list=S.history.filter(function(r){
+    var isTurno=(r.tipoRelatorio==='turno');
+    if(tipoFilter==='turno' && !isTurno) return false;
+    if(tipoFilter==='prevent' && isTurno) return false;
+    if(letraFilter && (r.letra||'')!==letraFilter) return false;
+    var iso=histNormISO(r.date);
+    if(dFilter && iso!==dFilter) return false;
+    if(q){
+      var hay=((r.resp||'')+' '+(r.proto||'')+' '+(r.tecnicoOutro||'')).toLowerCase();
+      if(hay.indexOf(q)===-1) return false;
+    }
+    return true;
+  });
+
+  if(!list.length){
+    el.innerHTML='<div style="padding:40px 16px;text-align:center;color:var(--g400)"><div style="font-size:2rem;margin-bottom:10px">&#128269;</div>Nenhum relatorio encontrado com esses filtros</div>';
+    return;
+  }
+
   el.innerHTML='';
-  S.history.forEach(function(r,i){
+  var lastGroup=null;
+  list.forEach(function(r){
+    var origIdx=S.history.indexOf(r);
+    var iso=histNormISO(r.date);
+    if(iso!==lastGroup){
+      lastGroup=iso;
+      var hd=document.createElement('div');
+      hd.className='hist-date-hd';
+      hd.textContent=histFmtHeader(iso);
+      el.appendChild(hd);
+    }
     var d=document.createElement('div');d.className='rpt-item';
     var isTurno=(r.tipoRelatorio==='turno');
     var tagHtml=isTurno
-      ? '<span style="display:inline-block;background:#EDE7F6;color:#5E35B1;font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:6px;margin-right:6px">TURNO</span>'
+      ? '<span style="display:inline-block;background:#EDE7F6;color:#5E35B1;font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:6px;margin-right:6px">TURNO'+(r.letra?' '+r.letra:'')+'</span>'
       : '<span style="display:inline-block;background:#E8F5E9;color:#2E7D32;font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:6px;margin-right:6px">PREVENTIVA</span>';
-    var metaH=tagHtml+r.date+(r.hora?' \u00b7 '+r.hora:'')+'<span>&#183;</span>'+r.tipo;
-    d.innerHTML='<div class="rpt-dot" style="background:'+(isTurno?'#5E35B1':(i<2?'#7C3AED':'#43A047'))+'"></div>'
+    var metaH=tagHtml+histFmtBR(iso)+(r.hora?' \u00b7 '+r.hora:'')+'<span>&#183;</span>'+(r.resp||r.tipo||'');
+    d.innerHTML='<div class="rpt-dot" style="background:'+(isTurno?'#5E35B1':'#43A047')+'"></div>'
       +'<div class="rpt-info"><div class="rpt-meta">'+metaH+'</div>'
       +'<div class="rpt-title">'+r.proto+'</div></div>'
       +'<span class="badge">Enviado</span>';
-    d.onclick=function(){showReportDetail(i);};el.appendChild(d);
+    d.onclick=function(){showReportDetail(origIdx);};el.appendChild(d);
   });
 }
 
