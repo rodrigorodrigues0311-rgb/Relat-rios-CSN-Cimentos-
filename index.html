@@ -4875,18 +4875,28 @@ function listBoxHTML(items, emptyPlaceholder, prefix){
   return html;
 }
 
-function preventivaHeaderHTML(){
-  return '<div style="height:6px;background:#6b21a8;"></div>'
-    +'<div style="background:#fff;padding:20px 28px 14px;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:2px solid #e0d5f5;">'
-      +'<div>'
-        +'<div style="font-size:27px;font-weight:800;letter-spacing:.3px;color:#151022;">RELATORIO DE ATIVIDADES</div>'
-        +'<div style="font-size:11.5px;color:#6b21a8;font-weight:700;letter-spacing:.5px;margin-top:2px;">EQUIPE DE MANUTENCAO</div>'
+function preventivaHeaderHTML(r, isP){
+  return '<div style="background:#1e0a4d;padding:26px 32px;display:flex;align-items:center;justify-content:space-between;color:#fff;">'
+      +'<div style="display:flex;align-items:center;gap:18px;">'
+        +'<div style="width:60px;height:60px;background:rgba(255,255,255,.15);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:30px;flex-shrink:0;">\uD83D\uDCCB</div>'
+        +'<div><div style="font-size:'+(isP?'32px':'40px')+';font-weight:800;letter-spacing:.5px;line-height:1.05;">RELATORIO DE ATIVIDADES</div><div style="font-size:'+(isP?'13px':'15px')+';color:#d8c8f5;letter-spacing:1px;margin-top:4px;">EQUIPE DE MANUTENCAO</div></div>'
       +'</div>'
-      +'<div style="text-align:right;">'
-        +'<div style="font-size:19px;font-weight:800;color:#1e0a4d;">CSN</div>'
-        +'<div style="font-size:11px;font-weight:700;color:#6b21a8;margin-top:-3px;">CIMENTOS</div>'
-      +'</div>'
+      +'<img src="'+CSN_LOGO_B64+'" style="height:'+(isP?'72px':'86px')+';">'
+    +'</div>'
+    +'<div style="background:#f3f0fa;padding:11px 32px;display:flex;flex-wrap:wrap;gap:'+(isP?'16px':'28px')+';font-size:'+(isP?'13px':'14px')+';font-weight:700;color:#3a1261;border-bottom:1px solid #e0d5f5;">'
+      +'<div>\uD83D\uDCC5 DATA: <span style="font-weight:400">'+escHtml(r.date||'-')+'</span></div>'
+      +'<div>\uD83C\uDFED EMPRESA: <span style="font-weight:400">CSN Cimentos</span></div>'
+      +'<div>\uD83D\uDC65 EQUIPE: <span style="font-weight:400">Manutencao</span></div>'
+      +'<div>\uD83D\uDD27 TIPO: <span style="font-weight:400">'+escHtml(r.tipo||'Relatorio de Atividades')+'</span></div>'
     +'</div>';
+}
+
+function iconRow(iconSrc,label,value){
+  return '<div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #f2f0f8;">'
+    +'<img src="'+iconSrc+'" style="width:20px;height:20px;object-fit:contain;flex-shrink:0;">'
+    +'<div style="font-size:10px;color:#999;font-weight:800;width:140px;flex-shrink:0;">'+escHtml(label.toUpperCase())+'</div>'
+    +'<div style="font-size:12px;color:#1a1a2e;font-weight:700;">'+escHtml(value)+'</div>'
+  +'</div>';
 }
 
 function buildPreventivaPageA(r, mode){
@@ -4895,42 +4905,42 @@ function buildPreventivaPageA(r, mode){
   var isP=(mode!=='landscape');
   var W=isP?1200:1697;
 
-  var row1='<div style="padding:14px 28px 0;">'
-    +idBar([
-      {icon:ICO_DATA,label:'Data',value:r.date||'-'},
-      {icon:ICO_RESPONSAVEL,label:'Responsavel',value:properCase(r.resp),sub:r.cargo?properCase(r.cargo):''},
-      {icon:ICO_EMPRESA,label:'Empresa',value:'CSN Cimentos'},
-      {icon:ICO_EQUIPE,label:'Equipe',value:'Manutencao'}
-    ])
+  var respPhoto=getTeamPhoto(r.resp);
+  var respPhotoHtml = respPhoto ? coverImgDiv(respPhoto,'62px','62px','50%','flex-shrink:0;') : '<div style="width:62px;height:62px;border-radius:50%;background:#ede7f6;display:flex;align-items:center;justify-content:center;font-size:27px;flex-shrink:0;">\uD83D\uDC64</div>';
+
+  var card1=cardWrap('1. RESPONSAVEL',
+    '<div style="display:flex;align-items:center;gap:12px;">'
+    +respPhotoHtml
+    +'<div><div style="font-weight:800;font-size:18px;">'+escHtml(properCase(r.resp))+'</div><div style="font-size:13px;color:#888;">'+escHtml(r.cargo?properCase(r.cargo):'-')+'</div></div>'
+    +'</div>');
+
+  var card2=cardWrap('2. DETALHES DA ATIVIDADE',
+    iconRow(ICO_TIPO_ATIV,'Tipo de Atividade',r.tipo||'-')
+    +iconRow(ICO_EQUIPAMENTO,'Equipamento / Area',r.equip||'-')
+    +iconRow(ICO_CLASSIFICACAO,'Classificacao',r.tipo||'-')
+    +iconRow(ICO_MAO_DE_OBRA,'Mao de Obra',r.hh?(r.hh+' colaboradores'):'-')
+    +iconRow(ICO_EMPRESA,'Ordens OM',r.om||'-')
+  );
+
+  var row3='<div style="padding:12px 32px 0;display:grid;grid-template-columns:1.3fr 1fr;gap:10px;align-items:stretch;">'
+    +cardWrap('3. SUPERVISORES / TEMA DO DDS', '<div style="font-size:12px;color:#333;">'+(r.dds?escHtml(properCase(r.dds)):'-')+'</div>', {style:'height:100%;box-sizing:border-box;'})
+    +cardWrap('4. AUSENCIAS DO DIA', ausenciasListHTML(abss), {style:'height:100%;box-sizing:border-box;'})
   +'</div>';
 
-  var row2='<div style="padding:10px 28px 0;">'
-    +idBar([
-      {icon:ICO_TIPO_ATIV,label:'Tipo de Atividade',value:r.tipo||'-'},
-      {icon:ICO_EQUIPAMENTO,label:'Equipamento / Area',value:r.equip||'-'},
-      {icon:ICO_CLASSIFICACAO,label:'Classificacao',value:r.tipo||'-'},
-      {icon:ICO_MAO_DE_OBRA,label:'Mao de Obra',value:r.hh?(r.hh+' colaboradores'):'-'},
-      {icon:ICO_EMPRESA,label:'Ordens OM',value:r.om||'-'}
-    ])
-  +'</div>';
-
-  var row3='<div style="padding:10px 28px 0;display:grid;grid-template-columns:1.3fr 1fr;gap:10px;align-items:stretch;">'
-    +cardWrapIco('<img src="'+ICO_EQUIPE+'" style="width:16px;height:16px;"><span>COORDENADOR / ENG. ESPECIALISTA &nbsp;|&nbsp; TEMA DO DDS</span>', '<div style="font-size:11px;color:#333;">'+(r.dds?escHtml(properCase(r.dds)):'--')+' &nbsp;|&nbsp; DDS: '+escHtml(r.dds?properCase(r.dds):'-')+'</div>', 'height:100%;box-sizing:border-box;')
-    +cardWrapIco('<img src="'+ICO_AUSENCIAS+'" style="width:16px;height:16px;"><span>AUSENCIAS DO DIA</span>', ausenciasListHTML(abss), 'height:100%;box-sizing:border-box;')
-  +'</div>';
-
-  var atividadesHeader='<div style="padding:12px 28px 0;">'
-    +'<div style="background:#4c1d95;color:#fff;font-size:11px;font-weight:800;padding:8px 14px;border-radius:8px 8px 0 0;">ATIVIDADES REALIZADAS</div>'
+  var atividadesHeader='<div style="padding:12px 32px 0;">'
+    +'<div style="background:#4c1d95;color:#fff;font-size:12px;font-weight:800;padding:8px 14px;border-radius:8px 8px 0 0;">5. ATIVIDADES REALIZADAS</div>'
     +'<div style="background:#fff;border:1px solid #e2e2ec;border-top:none;border-radius:0 0 8px 8px;padding:8px 14px;">'+atividadesRealizadasListHTML(acts)+'</div>'
   +'</div>';
 
-  var atividadesRows='<div style="padding:10px 28px 14px;display:grid;grid-template-columns:repeat('+(isP?2:3)+',1fr);gap:10px;align-items:start;">';
+  var atividadesRows='<div style="padding:10px 32px 14px;display:grid;grid-template-columns:repeat('+(isP?2:3)+',1fr);gap:10px;align-items:start;">';
   acts.forEach(function(a,i){ atividadesRows+=atividadeColumnHTML(a,i,r); });
   atividadesRows+='</div>';
 
+  var top='<div style="padding:14px 32px 0;display:grid;grid-template-columns:1fr 1.6fr;gap:10px;align-items:stretch;">'+card1+card2+'</div>';
+
   var minH=isP?Math.round(W*297/210):Math.round(W*210/297);
   return '<div style="width:'+W+'px;min-height:'+minH+'px;background:#fff;font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;box-sizing:border-box;">'
-    +preventivaHeaderHTML()+row1+row2+row3+atividadesHeader+atividadesRows
+    +preventivaHeaderHTML(r,isP)+top+row3+atividadesHeader+atividadesRows
   +'</div>';
 }
 
@@ -4940,14 +4950,14 @@ function buildPreventivaPageB(r, mode){
   var isP=(mode!=='landscape');
   var W=isP?1200:1697;
 
-  var bottomRow='<div style="padding:14px 28px 0;display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:stretch;">'
-    +cardWrapIco('<span>&#10060;</span><span>ATIVIDADES NAO REALIZADAS</span>', listBoxHTML(devs,'Sem desvios','Desvio '), 'height:100%;box-sizing:border-box;')
-    +cardWrapIco('<span>&#9888;&#65039;</span><span>PENDENCIAS ENCONTRADAS</span>', listBoxHTML(pends,'SEM PENDENCIAS','Pendencia '), 'height:100%;box-sizing:border-box;')
+  var bottomRow='<div style="padding:14px 32px 0;display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:stretch;">'
+    +cardWrap('6. ATIVIDADES NAO REALIZADAS', listBoxHTML(devs,'Sem desvios','Desvio '), {style:'height:100%;box-sizing:border-box;'})
+    +cardWrap('7. PENDENCIAS ENCONTRADAS', listBoxHTML(pends,'SEM PENDENCIAS','Pendencia '), {style:'height:100%;box-sizing:border-box;'})
   +'</div>';
 
   var minH=isP?Math.round(W*297/210):Math.round(W*210/297);
   return '<div style="width:'+W+'px;min-height:'+minH+'px;background:#fff;font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;box-sizing:border-box;">'
-    +preventivaHeaderHTML()+bottomRow
+    +preventivaHeaderHTML(r,isP)+bottomRow
   +'</div>';
 }
 
