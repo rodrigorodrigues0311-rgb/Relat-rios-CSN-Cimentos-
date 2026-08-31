@@ -249,7 +249,13 @@ function sendEmailNotification(decisao, comm, ts){
     emailjs.send(
       EMAILJS_SVC,
       EMAILJS_TMPL,
-      { to_email: email, subject: subject, message: message },
+      {
+        // Manda o destinatario com varios nomes de variavel possiveis,
+        // pra funcionar independente de qual nome o campo "To Email"
+        // do template no painel do EmailJS estiver esperando.
+        to_email: email, email: email, user_email: email, to: email, reply_to: email,
+        subject: subject, message: message
+      },
       EMAILJS_KEY
     )
     .then(function(resp){
@@ -259,11 +265,13 @@ function sendEmailNotification(decisao, comm, ts){
         '<span style="color:#43A047;font-size:.8rem;">📧 Email enviado para '+success+'/'+total+' destinatário(s)</span>';
     })
     .catch(function(err){
-      var msg = typeof err === 'object' ? JSON.stringify(err) : String(err);
+      var status = (err && err.status) ? err.status : '?';
+      var text = (err && err.text) ? err.text : (typeof err==='object' ? JSON.stringify(err) : String(err));
+      var msg = 'HTTP '+status+' - '+text;
       errors.push(email+': '+msg);
-      console.error('❌ Erro email para '+email+':', msg);
+      console.error('❌ Erro email para '+email+':', msg, err);
       if(subEl) subEl.innerHTML +=
-        '<br><span style="color:#E53935;font-size:.72rem;">⚠️ Falha: '+msg+'</span>';
+        '<br><span style="color:#E53935;font-size:.72rem;">⚠️ Falha ('+email+'): '+msg+'</span>';
     });
   });
 }
