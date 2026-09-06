@@ -2829,13 +2829,13 @@ function resumoAtendCardsHTML(cnt){
 }
 
 function pendTableHTML(pends){
-  if(!pends || !pends.length) return '<div style="font-size:14px;color:#999;padding:10px 0;">Nenhuma pendencia registrada</div>';
+  if(!pends || !pends.length) return '<div style="font-size:14px;color:#999;padding:10px 0;">Nenhuma pendencia em aberto</div>';
   var html='<table style="width:100%;border-collapse:collapse;font-size:12.5px;">'
     +'<thead><tr style="color:#888;text-align:left;font-size:9.5px;"><th style="padding:2px 5px;">DESCRICAO</th><th style="padding:2px 5px;">DATA</th><th style="padding:2px 5px;">STATUS</th></tr></thead><tbody>';
-  pends.slice(0,5).forEach(function(p){
+  pends.forEach(function(p){
     var open=(p.status!=='concluida');
     html+='<tr style="border-top:1px solid #eee;">'
-      +'<td style="padding:6px 5px;color:#333;vertical-align:top;font-size:12.5px;">'+escHtml((p.texto||'').substring(0,70))+'</td>'
+      +'<td style="padding:6px 5px;color:#333;vertical-align:top;font-size:12.5px;max-width:340px;word-break:break-word;white-space:normal;">'+escHtml(p.texto||'')+'</td>'
       +'<td style="padding:6px 5px;color:#666;white-space:nowrap;vertical-align:top;font-size:11px;">'+pendDataBR(p)+'</td>'
       +'<td style="padding:6px 5px;white-space:nowrap;vertical-align:top;"><span style="background:'+(open?'#fff3e0':'#e8f5e9')+';color:'+(open?'#e65100':'#2e7d32')+';padding:3px 9px;border-radius:10px;font-size:10px;font-weight:800;">'+(open?'ABERTA':'CONCLUIDA')+'</span></td>'
       +'</tr>';
@@ -2870,7 +2870,7 @@ function ocorrenciasTableHTML(atends){
       +'<td style="padding:7px 5px;font-size:12px;">'+escHtml(a.processo||'-')+'</td>'
       +'<td style="padding:7px 5px;font-size:12px;">'+escHtml(a.equipamento||'-')+'</td>'
       +'<td style="padding:7px 5px;color:'+tcolor+';font-weight:700;white-space:nowrap;font-size:12px;">'+ico+' '+escHtml(a.tipo)+'</td>'
-      +'<td style="padding:7px 5px;color:#555;max-width:230px;font-size:12px;">'+escHtml(descTxt.substring(0,140))+'</td>'
+      +'<td style="padding:7px 5px;color:#555;max-width:280px;font-size:12px;word-break:break-word;white-space:normal;">'+escHtml(descTxt)+'</td>'
       +'<td style="padding:7px 5px;white-space:nowrap;">'+fotosHtml+'</td>'
       +'<td style="padding:7px 5px;text-align:center;font-size:12px;">'+(hIni||'-')+'</td>'
       +'<td style="padding:7px 5px;text-align:center;font-size:12px;">'+(hFim||'-')+'</td>'
@@ -2982,7 +2982,7 @@ function buildTurnoReportHTML(r, mode){
   mode = mode||'landscape';
   var isP = (mode==='portrait');
   var cnt=r.contagem||{};
-  var pends=r.pendenciasTodas||r.pendenciasAbertas||[];
+  var pends=(r.pendenciasAbertas||r.pendenciasTodas||[]).filter(function(p){return p.status!=='concluida';});
   var atends=r.atendimentos||[];
   var top10=aggregateTurnoTop10();
   var tecPhoto = r.tecnicoOutro ? '' : getTeamPhoto(r.resp);
